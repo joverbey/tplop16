@@ -1,0 +1,12 @@
+.DS_Store
+*.sch
+*.log
+*.aux
+*.dvi
+*.idx
+*.log
+*.pdf
+*.ps
+*.toc
+*.bbl
+*.blg

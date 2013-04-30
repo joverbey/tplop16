@@ -1,0 +1,34 @@
+GoF
+===
+Intent
+Motivation
+Applicability
+Structure
+Participants
+Collaborations
+Consequences
+Implementation
+Sample Code
+Known Uses
+Related Patterns
+
+POSA
+====
+Abstract
+Example
+Context
+Problem
+Solution
+Structure
+Dynamics
+Implementation
+Example Resolved
+Variants
+Known Uses
+Consequences
+See Also
+Credits
+
+THAT BOOK
+=========
+ContextProblemForcesSolutionExampleRelated Patterns and Guidelines
