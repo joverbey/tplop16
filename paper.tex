@@ -1,7 +1,12 @@
-\documentclass[prodmode]{acmlarge}
+% TODO: Version with [draft] is for draft mode only
+%\documentclass[prodmode]{acmlarge}
+\documentclass[draft]{acmlarge}
 \usepackage{graphicx}
 \usepackage{wrapfig}
 \usepackage{url}
+\usepackage{datetime} % for \today
+\usepackage{listings} % for lstlisting environment
+\usepackage{placeins} % for \FloatBarrier
 \newcommand{\ttt}[1]{\texttt{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
 
@@ -28,7 +33,7 @@
 
 % Title portion
 \title{Immutable Source-Mapped Abstract Syntax Tree: \\
-A Design Pattern for Refactoring Engine APIs}
+A Design Pattern for Refactoring Engine APIs \\ \today}
 \author{JEFFREY L.\ OVERBEY \affil{Auburn University}}
 
 \begin{abstract}
@@ -97,12 +102,12 @@ provide the ability to contribute new automated refactorings.
 
 However, automated refactorings manipulate source code, so implementing an
 automated refactoring requires a data structure that describes the structure of
-soruce code.  Refactoring tools almost always use a data structure called an
+source code.  Refactoring tools almost always use a data structure called an
 \textit{abstract syntax tree} (AST).  ASTs describe source code hierarchically:
 e.g., classes contain methods, methods contain statements, statements contain
 expressions, etc.  ASTs are used in compilers and static analysis tools, but
-refactoring tools impose more stringent requirements on ASTs---specifically,
-the ASTs must be suitable for manipulating the user's source code.
+refactoring tools impose more stringent requirements---specifically, the ASTs
+must be suitable for manipulating the user's source code.
 
 If an IDE provides an application programming interface (API) that allows third
 parties to contribute new refactorings, then it is often helpful for that API
@@ -114,12 +119,13 @@ implementing nontrivial refactorings.
 \section{Context}
 
 You are implementing a refactoring engine or a similar tool that makes
-semi-automated edits to source code.  You have provided a mechanism that allows
+automated edits to source code.  You have provided a mechanism that allows
 third parties to contribute new refactorings/transformations.  You have an API
 for adding, deleting, and changing source code files (so the mechanism to, say,
 ``delete the first 27 characters of \textit{main.c}'' is well-defined).
 
 \section{Problem}
+\label{sec:Problem}
 
 Although you have an API for contributing refactorings/transformations, and you
 have provided the ability to make string-like edits to source code, this is a
@@ -128,12 +134,35 @@ structure of the language being refactored.
 
 Consider a simple Java refactoring that adds braces to the bodies of
 \textit{if} statements, if they do not already exist.  For example, it would
-change \\
-\centerline{\ttt{if (a < b) if (c < d) System.out.println("a");
-                            else System.out.println("b");}}
-into \\
-\centerline{\ttt{if (a < b) \{ if (c < d) \{ System.out.println("a"); \}
-                               else \{ System.out.println("b"); \} \}}.}
+make the following change.
+
+\begin{center}
+\vspace*{1em}
+\begin{tabular}{ccc}
+\begin{minipage}{2.25in}
+\texttt{%
+                if (a < b) \\
+\hspace*{1.5em}   if (c < d) \\
+\hspace*{3.0em}     System.out.println("a"); \\
+\hspace*{1.5em}   else \\
+\hspace*{3.0em}     System.out.println("b");} \\
+ \\
+\end{minipage}
+& $\Longrightarrow$ &
+\begin{minipage}{2.25in}
+\texttt{%
+                if (a < b) \textbf{\{} \\
+\hspace*{1.5em}   if (c < d) \textbf{\{} \\
+\hspace*{3.0em}     System.out.println("a"); \\
+\hspace*{1.5em}   \textbf{\}} else \textbf{\{} \\
+\hspace*{3.0em}     System.out.println("b"); \\
+\hspace*{1.5em}   \textbf{\}} \\
+                \textbf{\}}}
+\end{minipage}
+\end{tabular}
+\vspace*{1em}
+\end{center}
+
 Even this simple refactoring requires nontrivial knowledge of Java's syntax,
 including how the dangling \textit{else} is matched with a corresponding
 \textit{if}.
@@ -175,8 +204,27 @@ Automated refactorings are most useful for maintaining such codes.
 \textup{source mapping} information so that every node in the AST can be mapped
 to a particular substring of the original source code.}
 
-\subsection{Abstract Syntax Trees (ASTs)}
+\subsection{Abstract Syntax Trees}
 \label{ss:asts}
+
+\begin{wrapfigure}{R}{3in} % r is right, R is float right
+% Original image is 4.624 x 10.651 in
+\includegraphics[scale=0.65]{jdt-ast.eps}
+%\caption{Visualization of the Eclipse Java Development Tools' abstract syntax
+%tree for the following program: \\
+%\ \\
+%\centerline{\parbox{2in}{\ttt{\noindent public class Example \{ \\
+%\hspace*{.2em} public int FIVE = 5; \\
+%\}
+%}}} \\
+%\ \\
+%The highlighted node---a \textit{VariableDeclarationFragment}---corresponds to
+%the eight-character substring \ttt{FIVE = 5}, which begins with the 36th
+%character in the source code.
+%}
+\caption{Visualization of an AST from Eclipse JDT.}
+\label{fig:jdt-ast}
+\end{wrapfigure}
 
 (Readers familiar with ASTs may want to skip to \S\ref{ss:reqs}.)
 
@@ -196,25 +244,6 @@ declarations.  A type declaration has several child nodes, which describe
 (among other things) its visibility, the name of the class or interface, and
 the field/method declarations in its body.  A field declaration has child nodes
 describing its visibility, type, and so forth.
-
-\begin{wrapfigure}{R}{3in} % r is right, R is float right
-% Original image is 4.624 x 10.651 in
-\includegraphics[scale=0.6]{jdt-ast.eps}
-%\caption{Visualization of the Eclipse Java Development Tools' abstract syntax
-%tree for the following program: \\
-%\ \\
-%\centerline{\parbox{2in}{\ttt{\noindent public class Example \{ \\
-%\hspace*{.2em} public int FIVE = 5; \\
-%\}
-%}}} \\
-%\ \\
-%The highlighted node---a \textit{VariableDeclarationFragment}---corresponds to
-%the eight-character substring \ttt{FIVE = 5}, which begins with the 36th
-%character in the source code.
-%}
-\caption{Visualization of an AST from Eclipse JDT.}
-\label{fig:jdt-ast}
-\end{wrapfigure}
 
 Figure~\ref{fig:jdt-ast} shows a visualization of an AST for the following
 program:
@@ -246,7 +275,7 @@ compiler construction (e.g., \cite{aho06compilers} and
 \cite{torczon11engineering}).  Such books also discuss how parsers are
 constructed, including how they can be modified to construct ASTs.
 
-\subsection{Requirements of Refactoring ASTs}
+\subsection{Fulfilling the Requirements of Refactoring}
 \label{ss:reqs}
 
 %The use of ASTs in refactoring tools is nearly universal.  
@@ -267,8 +296,10 @@ not necessarily suitable for refactoring.  This is because refactoring tools
 impose two very significant---and unusual---requirements on their ASTs.
 
 \begin{enumerate}
-\item To be useful for refactoring, an AST must accurately and
-precisely model the user's source code at a very fine level of detail.
+\item To be useful for refactoring, an AST must accurately and precisely model
+the user's source code at a very fine level of detail.  It may even be
+necessary to include information about punctuation and comments in order to
+refactor code appropriately~\cite{sommerlad08retaining}.
 \item It must be possible to map nodes in the AST to locations in the
 source code, and vice versa.
 \end{enumerate}
@@ -358,8 +389,8 @@ descendent of that node.
 
 When ASTs are used in compilers, it is common to make them \textit{mutable},
 meaning that nodes can easily be added, changed, or deleted from the tree.  For
-example, a compiler might determine that \ttt{a = b*1} can be simplified to
-\ttt{a = b}, and then change the AST accordingly.
+example, a compiler might determine that \ttt{a~=~b*1} can be simplified to
+\ttt{a~=~b}, and then change the AST accordingly.
 
 At first, this seems like a reasonable mechanism for refactoring tools to use
 as well.  To remove a field declaration from a program, simply delete its
@@ -380,7 +411,8 @@ each node represent: the ``old'' source location (in the original code) or the
 location, what should the source location be when new nodes are inserted into
 the tree?  If it represents the new location, then every time a change is made
 to the tree, source location information must be updated for every node in the
-tree, which may be expensive.
+tree, which may be expensive \dots or else a clever implementation (e.g.,
+computation from relative offsets) must be used instead.
 \item \textit{AST nodes may be removed from the tree, leaving them orphaned.}
 Suppose a client traverses the AST, storing pointers to some ``interesting''
 nodes in a collection.  Then, an ancestor of one of those nodes is removed from
@@ -448,11 +480,21 @@ AST would probably be something like \textit{field.removeFromTree()}.  The code
 for doing the same with an immutable AST would be something like
 \textit{sourceCode.deleteSubstring(field.getOffset(), field.getLength())}.
 
-Note that the manipulation code using a mutable AST is simpler, and it more
+The situation gets a bit worse when changes are made to nested constructs.
+Recall the example from Section~\ref{sec:Problem}, which added braces to two
+\textit{if} statements, one nested inside the other.  Suppose the inner
+\textit{if} statement were modified first: Adding braces to it would change the
+position at which the closing brace for the outer \textit{if} statement would
+need to be added.  Likewise, if braces were added to the outer \textit{if}
+statement first, then this would shift the location of the inner \textit{if}
+statement.  In other words, when refactorings affect nested language
+constructs, offset/length computations can become complex.
+
+So, manipulating source code using a mutable AST is simpler, and it more
 directly expresses the programmer's intention.  Manipulating source code using
-offset/length information has a major disadvantage: it leads to ugly client
-code.  The client code can easily become littered with variables holding
-character offsets and methods that perform intricate string manipulations.
+offset/length information leads to ugly client code.  The client code can
+easily become littered with variables holding character offsets and methods
+that perform intricate string manipulations.
 
 In their discussions of API design, Bloch submits that it should be ``easy to
 read and maintain code that uses [the API]''~\cite{bloch}, and Tulach notes the
