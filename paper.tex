@@ -1,6 +1,7 @@
 % TODO: Version with [draft] is for draft mode only
-%\documentclass[prodmode]{acmlarge}
-\documentclass[draft]{acmlarge}
+% Also comment/uncomment \today in subtitle when in draft mode
+\documentclass[prodmode]{acmlarge}
+%\documentclass[draft]{acmlarge}
 \usepackage{graphicx}
 \usepackage{wrapfig}
 \usepackage{url}
@@ -33,7 +34,7 @@
 
 % Title portion
 \title{Immutable Source-Mapped Abstract Syntax Tree: \\
-A Design Pattern for Refactoring Engine APIs \\ \today}
+A Design Pattern for Refactoring Engine APIs} % \\ \today}
 \author{JEFFREY L.\ OVERBEY \affil{Auburn University}}
 
 \begin{abstract}
@@ -207,9 +208,23 @@ to a particular substring of the original source code.}
 \subsection{Abstract Syntax Trees}
 \label{ss:asts}
 
-\begin{wrapfigure}{R}{3in} % r is right, R is float right
+(Readers familiar with ASTs may want to skip to \S\ref{ss:reqs}.)
+
+Programs have a natural hierarchical structure.  For example, a Java source
+file contains a package declaration, import statements, and one or more type
+declarations (i.e., class/interface declarations).  A type declaration contains
+field and method declarations.  A method's body consists of a sequence of
+statements.  And so forth.
+
+An \textit{abstract syntax tree} (AST) is a data structure that describes a
+particular program in terms of this hierarchy.  Continuing with the Java
+example, an AST typically describes the structure of a single Java source file.
+The root node has three child nodes, corresponding to the three parts of a Java
+source file: one child node describes the 
+
+\begin{wrapfigure}{r}{3in} % r is right, R is float right
 % Original image is 4.624 x 10.651 in
-\includegraphics[scale=0.65]{jdt-ast.eps}
+\includegraphics[scale=0.62]{jdt-ast.eps}
 %\caption{Visualization of the Eclipse Java Development Tools' abstract syntax
 %tree for the following program: \\
 %\ \\
@@ -226,19 +241,8 @@ to a particular substring of the original source code.}
 \label{fig:jdt-ast}
 \end{wrapfigure}
 
-(Readers familiar with ASTs may want to skip to \S\ref{ss:reqs}.)
-
-Programs have a natural hierarchical structure.  For example, a Java source
-file contains a package declaration, import statements, and one or more type
-declarations (i.e., class/interface declarations).  A type declaration contains
-field and method declarations.  A method's body consists of a sequence of
-statements.  And so forth.
-
-An \textit{abstract syntax tree} (AST) is a data structure that describes a
-particular program in terms of this hierarchy.  Continuing with the Java
-example, an AST typically describes the structure of a single Java source file.
-The root node has three child nodes, corresponding to the three parts of a Java
-source file: one child node describes the \ttt{package} statement, another
+\noindent
+\ttt{package} statement, another
 contains a list of \ttt{import} statements, and a third contains a list of type
 declarations.  A type declaration has several child nodes, which describe
 (among other things) its visibility, the name of the class or interface, and
@@ -274,6 +278,8 @@ Deeper discussions on ASTs can be found in many introductory textbooks on
 compiler construction (e.g., \cite{aho06compilers} and
 \cite{torczon11engineering}).  Such books also discuss how parsers are
 constructed, including how they can be modified to construct ASTs.
+
+\FloatBarrier
 
 \subsection{Fulfilling the Requirements of Refactoring}
 \label{ss:reqs}
