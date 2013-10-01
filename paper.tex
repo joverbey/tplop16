@@ -545,12 +545,12 @@ delete a particular \textit{FieldDeclaration} node from the AST:
 code, it delegates this task to the rewriter:
 \textit{rewriter.rewrite(sourceCode)}.  This is illustrated in
 Figure~\ref{fig:seq-diagram}.  The Eclipse Java and C/C++ Development
-Tools~\cite{jdt-astrewrite,cdt-refactoring} take this approach
-(with slightly different class and method names).
+Tools~\cite{cdt-refactoring} take this approach (with slightly different class
+and method names).
 
 \begin{figure}[!bt]
 \begin{center}
-\includegraphics[width=\textwidth]{seq-diagram.eps}
+\includegraphics[width=.9\textwidth]{seq-diagram.eps}
 \end{center}
 \caption{Sequence diagram illustrating use of a Rewriter to modify source code.}
 \label{fig:seq-diagram}
@@ -578,7 +578,8 @@ substantially.
 Both Clang and the original refactoring engine in Xcode~3.0 modify source code
 using offset-length information directly.  Notably, Clang offers a
 \textit{RewriteRope} class---essentially, a custom string class that allows for
-efficient mid-string insertions and deletions~\cite{clang-rewriterope}.
+efficient mid-string insertions and
+deletions\footnote{\url{http://clang.llvm.org/doxygen/classclang_1_1RewriteRope.html}}.
 (It uses a B-tree structure inspired by, but not identical to, that described
 in the original paper on Ropes~\cite{boehm95ropes}.)
  
@@ -594,18 +595,19 @@ refactoring.  Of course, the LTK provides the infrastructure necessary to apply
 \textit{Change} objects, writing the modifications to disk, as well as to undo
 those changes at a later point in time.
 
-Eclipse JDT provides a class (\textit{ASTRewrite}) that allows the programmer
+Eclipse JDT provides a class (\textit{ASTRewrite}\footnote{\url{http://help.eclipse.org/kepler/topic/org.eclipse.jdt.doc.isv/reference/api/org/eclipse/jdt/core/dom/rewrite/ASTRewrite.html}}) that allows the programmer
 to specify modifications in terms of Java AST nodes, and then translates those
-changes into an LTK \textit{TextEdit} object~\cite{jdt-astrewrite}.  Eclipse
-CDT's refactoring engine is based on JDT's and follows a similar design; it
-offers its own version of \textit{ASTRewrite}~\cite{cdt-refactoring}.
+changes into an LTK \textit{TextEdit} object.  Eclipse CDT's refactoring engine
+is based on JDT's and follows a similar design; it offers its own version of
+textit{ASTRewrite}~\cite{cdt-refactoring}.
 
 Refactoring support in the Scala IDE for
-Eclipse~\cite{scalaide,scalarefactoring} takes a functional approach,
-implementing refactorings as tree transformations.  Source generation is
-handled separately: one printer uses position information to retain the
-formatting of the original code, while another pretty-prints new nodes that
-have been added to the AST~\cite{stocker10scala}.
+Eclipse\footnote{\url{http://scala-refactoring.org},
+\url{http://scala-ide.org/}} takes a functional approach, implementing
+refactorings as tree transformations.  Source generation is handled separately:
+one printer uses position information to retain the formatting of the original
+code, while another pretty-prints new nodes that were added to the
+AST~\cite{stocker10scala}.
 
 Microsoft's ``Roslyn'' CTP takes a functional approach, where imperative
 methods on AST nodes do not modify the AST but rather return a new
