@@ -10,6 +10,9 @@
 \usepackage{placeins} % for \FloatBarrier
 \newcommand{\ttt}[1]{\texttt{#1}}
 \newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\jb}[1]{\fbox{\texttt{#1}\rule[-1pt]{0pt}{.9em}}}
+\newcommand{\kb}[1]{\mbox{\texttt{\small #1}\rule{7.3pt}{0pt}\rule[-1pt]{0pt}{.9em}}}
+\newcommand{\lb}[1]{\mbox{\texttt{\small #1}\rule{3.2pt}{0pt}\rule[-1pt]{0pt}{.9em}}}
 
 % Metadata Information
 \acmVolume{0}
@@ -38,7 +41,7 @@ A Design Pattern for Refactoring Engine APIs} % \\ \today}
 \author{JEFFREY L.\ OVERBEY \affil{Auburn University}}
 
 \begin{abstract}
-Many automated refactoring tools provide an extensibility mechanism, which
+Many automated refactoring tools provide an extensibility mechanisms that
 allows third parties to contribute new refactorings.  However, implementing
 nontrivial refactorings requires deep syntactic knowledge about the program
 being refactored.  Refactoring tools almost always use abstract syntax trees
@@ -112,10 +115,9 @@ must be suitable for manipulating the user's source code.
 
 If an IDE provides an application programming interface (API) that allows third
 parties to contribute new refactorings, then it is often helpful for that API
-to provide access to ASTs as well.  This pattern considers ASTs exposed via
-refactoring engine extensibility APIs, identifying the common elements
-necessary to provide both a clean API and a data structure suitable for
-implementing nontrivial refactorings.
+to provide access to ASTs as well.  This pattern considers ASTs exposed by such
+APIs, identifying the common elements necessary to provide both a clean API and
+a data structure suitable for implementing nontrivial refactorings.
 
 \section{Context}
 
@@ -187,7 +189,8 @@ determine what syntactic construct(s) are selected.
 \item Clients must be able to use the API to manipulate source code in a way
 that is minimally invasive: refactorings that only affect a small, isolated
 region of the source code should not change any source code outside that
-region.  This includes preserving the program's comments and formatting.
+region.  This includes preserving the program's comments and
+formatting~\cite{sommerlad08retaining}.
 
 \item The API must follow general principles of good API design, including
 being easy to learn and difficult to misuse.
@@ -237,7 +240,8 @@ source file: one child node describes the
 %the eight-character substring \ttt{FIVE = 5}, which begins with the 36th
 %character in the source code.
 %}
-\caption{Visualization of an AST from Eclipse JDT.}
+\caption{Visualization of an AST produced by the Eclipse Java Development Tools
+(JDT).}
 \label{fig:jdt-ast}
 \end{wrapfigure}
 
@@ -259,9 +263,6 @@ program:
 }
 
 \vspace*{1em}
-\noindent (This visualization is produced by the Eclipse Java Development Tools
-(JDT), which are well known for their refactoring capabilities.)
-
 Notice how deeper levels of the tree describe progressively more fine-grained
 syntactic structures.  The root node represents the entire Java source file.
 The highlighted node---a \textit{VariableDeclarationFragment}---represents
@@ -423,7 +424,7 @@ computation from relative offsets) must be used instead.
 Suppose a client traverses the AST, storing pointers to some ``interesting''
 nodes in a collection.  Then, an ancestor of one of those nodes is removed from
 the AST.  This will leave the client in a difficult-to-debug situation where
-his collection contains pointers to nodes that no longer exist.
+his collection contains pointers to nodes that no longer exist in the AST.
 \item \textit{Semantic information may be invalidated.}  Refactorings often
 need to determine, for a particular use of a variable, what declaration that
 use corresponds to.  For example, in Java, if a field and a local variable were
@@ -446,17 +447,16 @@ expensive.
 
 Mutable ASTs were used in the original Smalltalk Refactoring
 Browser~\cite{roberts97refactoring}, as well as in
-CRefactory~\cite{garrido05program} and
-Photran (details of Photran's implementation are discussed
-in~\cite{sle2008}).  Many compilers use mutable ASTs internally.  However, these
-tools have one thing in common: the mutable AST is not accessible via any
-public API.  It is intended for internal use only, by developers who should be
-better equipped to handle all of the caveats.
+CRefactory~\cite{garrido05program} and Photran~\cite{sle2008}.  Many compilers
+use mutable ASTs internally.  However, these tools have one thing in common:
+the mutable AST is not accessible via any public API.  It is intended for
+internal use only, by developers who should be better equipped to handle all of
+the caveats.
 
 Guidelines for API design are discussed in detail in Jaroslav Tulach's
 \textit{Practical API Design}~\cite{tulach08practical}.  A presentation by
 Joshua Bloch~\cite{bloch} offers excellent advice as well.  Both authors
-suggest minimizing the amount of mutability in an API.  After all, mutable
+suggest minimizing the amount of mutability in an API.  After all, immutable
 objects tend to have simpler interfaces, and they are thread-safe.  Both
 authors also emphasize that APIs should be easy to learn (even for programmers
 who do not read all of the API documentation) and difficult for clients to
@@ -488,13 +488,38 @@ for doing the same with an immutable AST would be something like
 
 The situation gets a bit worse when changes are made to nested constructs.
 Recall the example from Section~\ref{sec:Problem}, which added braces to two
-\textit{if} statements, one nested inside the other.  Suppose the inner
+\textit{if} statements, one nested inside the other.  Suppose the outer
 \textit{if} statement were modified first: Adding braces to it would change the
-position at which the closing brace for the outer \textit{if} statement would
-need to be added.  Likewise, if braces were added to the outer \textit{if}
-statement first, then this would shift the location of the inner \textit{if}
-statement.  In other words, when refactorings affect nested language
-constructs, offset/length computations can become complex.
+position at which the closing brace for the inner \textit{if} statement would
+need to be added.  Consider a somewhat simplified example.  Pictorially:
+
+\begin{center}
+\jb{i}\jb{f}\jb{(}\jb{1}\jb{)}\jb{ }%
+\jb{i}\jb{f}\jb{(}\jb{2}\jb{)}\jb{ }%
+\jb{s}\jb{(}\jb{)}\jb{;}\\
+\lb{\,}\kb{0}\kb{1}\kb{2}\kb{3}\kb{4}\kb{5}\kb{6}\kb{7}\kb{8}\lb{9}%
+\lb{10}\lb{11}\lb{12}\lb{13}\lb{14}\lb{15} \\
+$\Downarrow$ \rule[-0.5em]{0pt}{1.2em} \\
+\jb{i}\jb{f}\jb{(}\jb{1}\jb{)}\jb{ }%
+\jb{\{}\jb{ }%
+\jb{i}\jb{f}\jb{(}\jb{2}\jb{)}\jb{ }%
+\jb{s}\jb{(}\jb{)}\jb{;}%
+\jb{ }\jb{\}}\\
+\lb{\,}\kb{0}\kb{1}\kb{2}\kb{3}\kb{4}\kb{5}\kb{6}\kb{7}\kb{8}\lb{9}%
+\lb{10}\lb{11}\lb{12}\lb{13}\lb{14}\lb{15}\lb{16}\lb{17}\lb{18}\lb{19} \\
+\end{center}
+
+\noindent
+The body of the inner \textit{if} statement begins at offset~12 in the original
+code.  But after adding braces to the outer \textit{if} statement, the body of
+the inner \textit{if} statement is shifted to offset~14.
+
+%Likewise, if braces were added to the inner \textit{if} statement first, then
+%this would shift the location of the closing brace for the outer \textit{if}
+%statement.
+In other words, when refactorings affect nested language constructs,
+offset/length computations can become complex, since the edits for one
+construct may interact with the edits for another construct.
 
 So, manipulating source code using a mutable AST is simpler, and it more
 directly expresses the programmer's intention.  Manipulating source code using
@@ -518,7 +543,18 @@ The client would inform the \textit{Rewriter} that it wants to effectively
 delete a particular \textit{FieldDeclaration} node from the AST:
 \textit{rewriter.delete(field)}.  When it is ready to manipulate the source
 code, it delegates this task to the rewriter:
-\textit{rewriter.rewrite(sourceCode)}.
+\textit{rewriter.rewrite(sourceCode)}.  This is illustrated in
+Figure~\ref{fig:seq-diagram}.  The Eclipse Java and C/C++ Development
+Tools~\cite{jdt-astrewrite,cdt-refactoring} take this approach
+(with slightly different class and method names).
+
+\begin{figure}[!bt]
+\begin{center}
+\includegraphics[width=\textwidth]{seq-diagram.eps}
+\end{center}
+\caption{Sequence diagram illustrating use of a Rewriter to modify source code.}
+\label{fig:seq-diagram}
+\end{figure}
 
 A second option is to work with ASTs in a functional style, where every edit
 returns a new AST.  So, a call to \textit{field.removeFromTree()} would not
@@ -533,10 +569,11 @@ original tree to the ``same'' node in the modified tree, and vice versa.)
 \section{Known Uses}
 
 Immutable, source-mapped ASTs are used by the Eclipse Java Development Tools
-(JDT) and C/C++ Development Tools (CDT), the Microsoft ``Roslyn'' Community
-Technology Preview (CTP), Clang, and the original refactoring engine in Apple
-Xcode.  However, while all use immutable ASTs with source mapping information,
-the actual rewriting APIs vary substantially.  
+(JDT) and C/C++ Development Tools (CDT), as well as the Scala IDE for Eclipse,
+the Microsoft ``Roslyn'' Community Technology Preview (CTP), Clang, and the
+original refactoring engine in Apple Xcode.  However, while all use immutable
+ASTs with source mapping information, the actual rewriting APIs vary
+substantially.  
 
 Both Clang and the original refactoring engine in Xcode~3.0 modify source code
 using offset-length information directly.  Notably, Clang offers a
@@ -563,6 +600,13 @@ changes into an LTK \textit{TextEdit} object~\cite{jdt-astrewrite}.  Eclipse
 CDT's refactoring engine is based on JDT's and follows a similar design; it
 offers its own version of \textit{ASTRewrite}~\cite{cdt-refactoring}.
 
+Refactoring support in the Scala IDE for
+Eclipse~\cite{scalaide,scalarefactoring} takes a functional approach,
+implementing refactorings as tree transformations.  Source generation is
+handled separately: one printer uses position information to retain the
+formatting of the original code, while another pretty-prints new nodes that
+have been added to the AST~\cite{stocker10scala}.
+
 Microsoft's ``Roslyn'' CTP takes a functional approach, where imperative
 methods on AST nodes do not modify the AST but rather return a new
 AST~\cite{vogel12roslyn}.  Since a na\"{i}ve implementation could make this
@@ -579,6 +623,9 @@ possible (which is possible since all nodes are immutable).
 
 %\section{Related Patterns and Guidelines}
 
+\textit{The author would like to thank Peter Sommerlad for the invaluable
+feedback and suggestions he provided as the shepherd for this paper.}
+
 \bibliographystyle{acmlarge}
 \bibliography{paper}
 
@@ -586,4 +633,3 @@ possible (which is possible since all nodes are immutable).
 %\received{February 2009}{July 2009}{October 2009}
 
 \end{document}
-

@@ -19,7 +19,9 @@ paper.pdf: $(wildcard *.tex) $(wildcard *.eps) $(wildcard *.bib)
 		-dColorImageFilter=/FlateEncode \
 		-dGrayImageFilter=/FlateEncode \
 		-dMonoImageFilter=/FlateEncode  \
-		paper.ps
+		paper.ps paperx.pdf
+	pdftk paperx.pdf multibackground pagenums-pdf output paper.pdf
+	rm -f paperx.pdf
 
 view: paper.pdf
 	if [ `uname -s` == "Darwin" ]; then \
