@@ -36,7 +36,7 @@
 \markboth{J.~Overbey}{Immutable Source-Mapped Abstract Syntax Tree}
 
 % Title portion
-\title{Immutable Source-Mapped Abstract Syntax Tree: \\
+\title{Immutable Source-Mapped Abstract Syntax Tree:\ \\
 A Design Pattern for Refactoring Engine APIs} % \\ \today}
 \author{JEFFREY L.\ OVERBEY \affil{Auburn University}}
 
@@ -49,16 +49,17 @@ being refactored.  Refactoring tools almost always use abstract syntax trees
 desirable to expose these trees via an API.  This pattern describes the common
 attributes that ASTs typically exhibit in order to be useful for implementing
 nontrivial refactorings while, at the same time, maintaining the
-characteristics of good API design.  This pattern is used in the Eclipse Java
-Development Tools' refactoring API as well as the Microsoft ``Roslyn'' CTP,
-among other uses.
+characteristics of good API design.  In particular, these trees tend to have an
+immutable structure, and they maintain very detailed information about the
+source code, including exact character positions.  This pattern is used in the
+Eclipse Java Development Tools' refactoring API as well as the Microsoft
+``Roslyn'' CTP, among other uses.
 \end{abstract}
 
 \category{D.2.3}{Software Engineering}{Coding Tools and Techniques}
 
 \terms{Languages}
-\keywords{abstract syntax trees, application programming interfaces, APIs,
-ASTs, immutability, refactoring}
+\keywords{abstract syntax trees, APIs, ASTs, immutability, refactoring}
 
 \acmformat{Overbey, J. 2013. Immutable Source-Mapped Abstract Syntax Tree.}
 
@@ -68,9 +69,6 @@ held by the author(s). ACM 978-1-4503-0107-7}
 \begin{document}
 
 \begin{bottomstuff}
-This material is based upon work supported by the National Science Foundation
-under Grant No.~CCF-1217271.
-
 Permission to make digital or hard copies of all or part of this work for
 personal or classroom use is granted without fee provided that copies are not
 made or distributed for profit or commercial advantage and that copies bear
@@ -78,7 +76,8 @@ this notice and the full citation on the first page. To copy otherwise, to
 republish, to post on servers or to redistribute to lists, requires prior
 specific permission. A preliminary version of this paper was presented in a
 writers' workshop at the 20th Conference on Pattern Languages of Programs
-(PLoP).
+(PLoP).  PLoP'13, October 23--26, Monticello, Illinois, USA. Copyright 2013 is
+held by the author(s). HILLSIDE 978-1-941652-00-8
 \end{bottomstuff}
 
 
@@ -241,7 +240,7 @@ source file: one child node describes the
 %character in the source code.
 %}
 \caption{Visualization of an AST produced by the Eclipse Java Development Tools
-(JDT).}
+(JDT).\vspace*{-4em}}
 \label{fig:jdt-ast}
 \end{wrapfigure}
 
@@ -255,14 +254,14 @@ describing its visibility, type, and so forth.
 
 Figure~\ref{fig:jdt-ast} shows a visualization of an AST for the following
 program:
-\vspace*{1em}
+\vspace*{.5em}
 
 \noindent \ttt{public class Example \{ \\
 \hspace*{.2em} public int FIVE = 5; \\
 \}
 }
 
-\vspace*{1em}
+\vspace*{.5em}
 Notice how deeper levels of the tree describe progressively more fine-grained
 syntactic structures.  The root node represents the entire Java source file.
 The highlighted node---a \textit{VariableDeclarationFragment}---represents
@@ -276,8 +275,8 @@ this structure familiar.  The DOM is effectively an abstract syntax tree for
 HTML/XML documents.
 
 Deeper discussions on ASTs can be found in many introductory textbooks on
-compiler construction (e.g., \cite{aho06compilers} and
-\cite{torczon11engineering}).  Such books also discuss how parsers are
+compiler construction, such as \cite{aho06compilers} and
+\cite{torczon11engineering}.  Such books also discuss how parsers are
 constructed, including how they can be modified to construct ASTs.
 
 \FloatBarrier
@@ -456,15 +455,14 @@ the caveats.
 Guidelines for API design are discussed in detail in Jaroslav Tulach's
 \textit{Practical API Design}~\cite{tulach08practical}.  A presentation by
 Joshua Bloch~\cite{bloch} offers excellent advice as well.  Both authors
-suggest minimizing the amount of mutability in an API.  After all, immutable
-objects tend to have simpler interfaces, and they are thread-safe.  Both
-authors also emphasize that APIs should be easy to learn (even for programmers
-who do not read all of the API documentation) and difficult for clients to
-misuse.  Given these guidelines, and the list of liabilities for mutable ASTs
-given above, it seems preferable from the perspective of someone attempting to
-publish an API to avoid mutable ASTs.  But this raises a different question: If
-ASTs are immutable, what API should be provided for clients to manipulate
-source code?
+suggest minimizing the amount of mutability in an API.  Immutable objects tend
+to have simpler interfaces, and they are thread-safe.  Both authors also
+emphasize that APIs should be easy to learn (even for programmers who do not
+read all of the API documentation) and difficult for clients to misuse.  Given
+these guidelines, and the list of liabilities for mutable ASTs given above, it
+seems preferable from the perspective of someone attempting to publish an API
+to avoid mutable ASTs.  But this raises a different question: If ASTs are
+immutable, what API should be provided for clients to manipulate source code?
 
 \subsection{Using Immutable ASTs for Source Code Manipulation}
 \label{ss:manip}
@@ -531,7 +529,7 @@ In their discussions of API design, Bloch submits that it should be ``easy to
 read and maintain code that uses [the API]''~\cite{bloch}, and Tulach notes the
 advantages of APIs where the clients ``don't describe step-by-step what they
 want your API to do.  Rather, they `declare' what they want to have happen and
-then rely on your API to do it\dots''~[p.~225]\cite{tulach08practical}.
+then rely on your API to do it\dots''~\cite[p.~225]{tulach08practical}.
 
 So, is it possible to provide a cleaner source manipulation API, while still
 using an immutable AST?  It is, but some additional API is needed.
@@ -599,7 +597,7 @@ Eclipse JDT provides a class (\textit{ASTRewrite}\footnote{\url{http://help.ecli
 to specify modifications in terms of Java AST nodes, and then translates those
 changes into an LTK \textit{TextEdit} object.  Eclipse CDT's refactoring engine
 is based on JDT's and follows a similar design; it offers its own version of
-textit{ASTRewrite}~\cite{cdt-refactoring}.
+\textit{ASTRewrite}~\cite{cdt-refactoring}.
 
 Refactoring support in the Scala IDE for
 Eclipse\footnote{\url{http://scala-refactoring.org},
@@ -616,7 +614,7 @@ prohibitively expensive, the Roslyn team devised an implementation that
 they call \textit{red-green trees} (named after the colors of the
 whiteboard markers that were used during the design
 meeting)~\cite{lippert12persistence}.  Essentially, the AST exposed via the API
-(the ``red tree'') is a fa\,{c}ade for a different, internal tree (the ``green
+(the ``red tree'') is a fa\c{c}ade for a different, internal tree (the ``green
 tree''); the implementation attempts to reuse existing AST nodes whenever
 possible (which is possible since all nodes are immutable).
 
@@ -625,8 +623,12 @@ possible (which is possible since all nodes are immutable).
 
 %\section{Related Patterns and Guidelines}
 
-\textit{The author would like to thank Peter Sommerlad for the invaluable
-feedback and suggestions he provided as the shepherd for this paper.}
+\section*{Acknowledgments}
+This material is based upon work supported by the National Science Foundation
+under Grant No.~CCF-1217271.  The author would like to thank Peter Sommerlad,
+who shepherded this pattern, as well as the members of Workshop~000001 at
+PLoP~2013: Filipe Correia, Dibyendu Goswami, Joshua Kerievsky, Juan Reza, and
+Russ Rubis.  Their feedback was immensely helpful.
 
 \bibliographystyle{acmlarge}
 \bibliography{paper}
