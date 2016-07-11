@@ -31,4 +31,9 @@ Credits
 
 THAT BOOK
 =========
-ContextProblemForcesSolutionExampleRelated Patterns and Guidelines
+Context
+Problem
+Forces
+Solution
+Example
+Related Patterns and Guidelines
