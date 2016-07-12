@@ -24,19 +24,17 @@ paper.pdf: $(wildcard *.tex) $(wildcard *.eps) $(wildcard *.bib)
 	rm -f paperx.pdf
 
 view: paper.pdf
-	if [ `uname -s` == "Darwin" ]; then \
+	OS=`uname -s`; \
+	if [ "$$OS" == "Darwin" ]; then \
 		open -a /Applications/Preview.app \
 			paper.pdf; \
-	elif [ `uname -s` == "CYGWIN_NT-5.2-WOW64" ]; then \
-		/cygdrive/c/Program\ Files\ \(x86\)/Adobe/Reader\ */Reader/AcroRd32.exe \
-			paper.pdf; \
-		exit 0; \
 	else \
-		xpdf -paper letter paper.pdf; \
+		evince paper.pdf; \
 	fi
 
 aview: paper.pdf
-	if [ `uname -s` == "Darwin" ]; then \
+	OS=`uname -s`; \
+	if [ "$$OS" == "Darwin" ]; then \
 		open -a /Applications/Adobe\ Reader*/Adobe\ Reader*.app \
 			paper.pdf; \
 	else \
