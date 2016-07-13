@@ -38,7 +38,7 @@
 % Title portion
 \title{Immutable Source-Mapped Abstract Syntax Tree:\ \\
 A Design Pattern for Refactoring Engine APIs} % \\ \today}
-\author{JEFFREY L.\ OVERBEY \affil{Auburn University}}
+\author{JEFFREY L.\ OVERBEY and CARL R.\ WORLEY \affil{Auburn University}}
 
 \begin{abstract}
 Many automated refactoring tools provide extensibility mechanisms that
@@ -129,48 +129,51 @@ for adding, deleting, and changing source code files (so the mechanism to, say,
 \section{Problem}
 \label{sec:Problem}
 
-Although you have an API for contributing refactorings/transformations, and you
-have provided the ability to make string-like edits to source code, this is a
-very primitive API that eschews any real knowledge about the syntactic
-structure of the language being refactored.
+Although you have an API for contributing refactorings/transformations, it is 
+very primitive, only capable of string-like manipulations. This API lacks any
+sophisticated knowledge of the text being edited.
 
-Consider a simple Java refactoring that adds braces to the bodies of
-\textit{if} statements, if they do not already exist.  For example, it would
-make the following change.
+Consider a simple Java refactoring that reverses the conditional meaning of
+\textit{if} statements. For example, it would make the following change.
 
 \begin{center}
 \vspace*{1em}
 \begin{tabular}{ccc}
 \begin{minipage}{2.25in}
 \texttt{%
-                if (a < b) \\
-\hspace*{1.5em}   if (c < d) \\
-\hspace*{3.0em}     System.out.println("a"); \\
-\hspace*{1.5em}   else \\
-\hspace*{3.0em}     System.out.println("b");} \\
+                  if (!(a < b)) \textbf{\{}\\
+\hspace*{1.5em}     System.out.println("a"); \\
+                  \textbf{\}} else \textbf{\{}\\
+\hspace*{1.5em}     System.out.println("b"); \\
+                  \textbf{\}}} 
  \\
 \end{minipage}
 & $\Longrightarrow$ &
 \begin{minipage}{2.25in}
 \texttt{%
-                if (a < b) \textbf{\{} \\
-\hspace*{1.5em}   if (c < d) \textbf{\{} \\
-\hspace*{3.0em}     System.out.println("a"); \\
-\hspace*{1.5em}   \textbf{\}} else \textbf{\{} \\
-\hspace*{3.0em}     System.out.println("b"); \\
-\hspace*{1.5em}   \textbf{\}} \\
-                \textbf{\}}}
+                  if (a < b) \textbf{\{} \\
+\hspace*{1.5em}     System.out.println("b"); \\
+                  \textbf{\}} else \textbf{\{} \\
+\hspace*{1.5em}     System.out.println("a"); \\
+                  \textbf{\}} \\
+                }
 \end{minipage}
 \end{tabular}
 \vspace*{1em}
 \end{center}
 
-Even this simple refactoring requires nontrivial knowledge of Java's syntax,
-including how the dangling \textit{else} is matched with a corresponding
-\textit{if}.
+To perform this refactoring, the conditional expression must be reversed in
+meaning and the contents of the \textit{if} and \textit{else} branches must be
+interchanged. Changing the condition requires removing the \textit{not} and the 
+redundant parentheses. The former is simple enough, but the latter requires 
+knowledge of matching parentheses. Interchanging the branches similarly requires 
+knowledge of the matching braces, the location of the \textit{if} and dangling 
+\textit{else}, and the presence or absence of any statements that alter flow of 
+control such as \textit{goto}. In essence, knowledge of the program's syntax is 
+required.
 
-How can the refactoring engine provide an API that exposes the syntactic
-structure of programs in a way that is useful for implementing refactorings?
+\textit{How can the refactoring engine provide an API that exposes the syntactic
+structure of programs in a way that is useful for implementing refactorings?}
 
 \section{Forces}
 
@@ -178,8 +181,7 @@ structure of programs in a way that is useful for implementing refactorings?
 
 \item The API must expose fine-grained details about the syntax of a program.
 For example, the preceding example requires being able to determine the
-presence or absence of braces \ttt{\{} \ttt{\}}, even though they are
-semantically irrelevant.
+exact location of parentheses \ttt{(} \ttt{)}.
 
 \item Many refactorings are initiated only after the user selects a range of
 source code in a text editor.  Therefore, the API must allow clients to
