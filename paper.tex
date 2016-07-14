@@ -38,7 +38,7 @@
 % Title portion
 \title{Immutable Source-Mapped Abstract Syntax Tree:\ \\
 A Design Pattern for Refactoring Engine APIs} % \\ \today}
-\author{JEFFREY L.\ OVERBEY and CARL R.\ WORLEY \affil{Auburn University}}
+\author{JEFFREY L.\ OVERBEY \and CARL R.\ WORLEY \affil{Auburn University}}
 
 \begin{abstract}
 Many automated refactoring tools provide extensibility mechanisms that
@@ -395,10 +395,12 @@ descendent of that node.
 \subsection{Mutable vs.\ Immutable ASTs}
 \label{ss:manip}
 
-When ASTs are used in compilers, it is common to make them \textit{mutable},
-meaning that nodes can easily be added, changed, or deleted from the tree.  For
-example, a compiler might determine that \ttt{a~=~b*1} can be simplified to
-\ttt{a~=~b}, and then change the AST accordingly.
+There are two main variants to the Abstract Syntax Tree pattern for refactoring:
+mutable and immutable. A mutable tree has nodes that can be easily added, 
+changed, or deleted from the tree. These trees are often used internally by
+compilers. For example, a compiler might determine that
+\ttt{a~=~b*1} can be simplified to \ttt{a~=~b}, and then change the AST 
+accordingly.
 
 At first, this seems like a reasonable mechanism for refactoring tools to use
 as well.  To remove a field declaration from a program, simply delete its
@@ -408,9 +410,12 @@ change the name of \ttt{FIVE}, change the contents of its
 prettyprint the modified AST, so these changes can be translated back into
 source code, but that is relatively straightforward to implement.
 
-Unfortunately, while a mutable AST can provide an elegant means of manipulating
-source code, that are other issues that can make mutable ASTs problematic from
-an API design perspective.  Some notable issues include the following.
+Mutable ASTs are conceptually simple and allow code for specific refactorings
+to be very short. Performing refactorings on source code is conceptually
+identical to changing the AST itself. This can greatly lower the bar for 
+designing refactorings. However, mutable ASTs introduce a host of problems when
+used in a large API:
+
 \begin{itemize}
 \item \textit{AST nodes contain source location information.}  After the
 structure of the AST is changed, what does the source location information in
@@ -460,11 +465,12 @@ Joshua Bloch~\cite{bloch} offers excellent advice as well.  Both authors
 suggest minimizing the amount of mutability in an API.  Immutable objects tend
 to have simpler interfaces, and they are thread-safe.  Both authors also
 emphasize that APIs should be easy to learn (even for programmers who do not
-read all of the API documentation) and difficult for clients to misuse.  Given
-these guidelines, and the list of liabilities for mutable ASTs given above, it
-seems preferable from the perspective of someone attempting to publish an API
-to avoid mutable ASTs.  But this raises a different question: If ASTs are
-immutable, what API should be provided for clients to manipulate source code?
+read all of the API documentation) and difficult for clients to misuse. Mutable
+ASTs have the advantage of ease-of-learning, but have have all the disadvantages
+listed above. They can be valid solutions for simpler refactorings or projects
+developed by a small team of people, but become problematic when used for 
+nontrivial refactorings or for a public API. For a general, public refactoring
+API, immutable trees are less error-prone.
 
 \subsection{Using Immutable ASTs for Source Code Manipulation}
 \label{ss:manip}
@@ -534,13 +540,31 @@ want your API to do.  Rather, they `declare' what they want to have happen and
 then rely on your API to do it\dots''~\cite[p.~225]{tulach08practical}.
 
 So, is it possible to provide a cleaner source manipulation API, while still
-using an immutable AST?  It is, but some additional API is needed.
+using an immutable AST?  It is, and there are two main variants that allow
+for this.
 
-One option is to provide an API that allows clients to specify what changes
-they want to make in terms of AST nodes.  This API can then translate these
-into string edits.  For example, an API might offer a \textit{Rewriter} class.
-The client would inform the \textit{Rewriter} that it wants to effectively
-delete a particular \textit{FieldDeclaration} node from the AST:
+\subsection{Variants}
+
+\begin{itemize}
+
+    \item \textit{Work with the ASTs in a functional style, where every edit
+        returns a new AST.} So, a call to field.removeFromTree() would not
+        change the existing AST, but rather it would return a new AST that has
+        the given field omitted. When dealing with immutable data structures,
+        functional programming may often be the natural solution. However,
+        in the case of ASTs, a functional style risks reintroducing many of 
+        the problems inherent to mutable trees. File location of nodes may
+        be disrupted, pointers to nodes in the original tree may be rendered 
+        irrelevant, semantic information may be invalidated, etc. Those are in
+        addition to the difficulties of functional programming, such as memory
+        consumption and copying, especially with very large ASTs. This is
+        a valid refactoring API design pattern, but any implementation using 
+        this variant must carefully consider these problems.
+
+    \item \textit{Provide an API that allows clients to specify what changes
+        they want to make in terms of AST nodes.}  This API can then translate these into string edits.  For example, an API might offer a \textit{Rewriter} 
+class. The client would inform the \textit{Rewriter} that it wants to 
+effectively delete a particular \textit{FieldDeclaration} node from the AST:
 \textit{rewriter.delete(field)}.  When it is ready to manipulate the source
 code, it delegates this task to the rewriter:
 \textit{rewriter.rewrite(sourceCode)}.  This is illustrated in
@@ -556,13 +580,7 @@ and method names).
 \label{fig:seq-diagram}
 \end{figure}
 
-A second option is to work with ASTs in a functional style, where every edit
-returns a new AST.  So, a call to \textit{field.removeFromTree()} would not
-change the existing AST, but rather it would return a new AST that has the
-given field omitted.  (Of course, this requires a very careful implementation.
-Memory consumption and copying are a concern, particularly when ASTs are large.
-Also, a mechanism must be provided so that clients can easily map nodes in the
-original tree to the ``same'' node in the modified tree, and vice versa.)
+\end{itemize}
 
 %\section{Example}
 
