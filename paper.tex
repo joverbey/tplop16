@@ -1,7 +1,7 @@
 % TODO: Version with [draft] is for draft mode only
 % Also comment/uncomment \today in subtitle when in draft mode
 \documentclass[prodmode]{acmlarge}
-%\documentclass[draft]{acmlarge}
+%\documentclass[draft,prodmode]{acmlarge}
 \usepackage{graphicx}
 \usepackage{wrapfig}
 \usepackage{url}
@@ -470,7 +470,7 @@ ASTs have the advantage of ease-of-learning, but have have all the disadvantages
 listed above. They can be valid solutions for simpler refactorings or projects
 developed by a small team of people, but become problematic when used for 
 nontrivial refactorings or for a public API. For a general, public refactoring
-API, immutable trees are less error-prone.
+API, immutable trees are much more reliable.
 
 \subsection{Using Immutable ASTs for Source Code Manipulation}
 \label{ss:manip}
@@ -493,32 +493,32 @@ for doing the same with an immutable AST would be something like
 \textit{sourceCode.deleteSubstring(field.getOffset(), field.getLength())}.
 
 The situation gets a bit worse when changes are made to nested constructs.
-Recall the example from Section~\ref{sec:Problem}, which added braces to two
-\textit{if} statements, one nested inside the other.  Suppose the outer
-\textit{if} statement were modified first: Adding braces to it would change the
-position at which the closing brace for the inner \textit{if} statement would
-need to be added.  Consider a somewhat simplified example.  Pictorially:
+Recall the example from Section~\ref{sec:Problem}, which reversed conditionals 
+of \textit{if} statements. After the addition of the \textit{!} to the 
+condition, the offset of the body is different. Consider a somewhat simplified 
+example. Pictorially:
 
 \begin{center}
 \jb{i}\jb{f}\jb{(}\jb{1}\jb{)}\jb{ }%
-\jb{i}\jb{f}\jb{(}\jb{2}\jb{)}\jb{ }%
+\jb{s}\jb{(}\jb{)}\jb{;}\jb{ }%
+\jb{e}\jb{l}\jb{s}\jb{e}\jb{ }%
+\jb{b}\jb{(}\jb{)}\jb{;}\\
+\lb{\,}\kb{0}\kb{1}\kb{2}\kb{3}\kb{4}\kb{5}\kb{6}\kb{7}\kb{8}\lb{9}%
+\lb{10}\lb{11}\lb{12}\lb{13}\lb{14}\lb{15}\lb{16}\lb{17}\lb{18}\lb{19}\\
+$\Downarrow$ \rule[-0.5em]{0pt}{1.2em} \\
+\jb{i}\jb{f}\jb{(}\jb{!}\jb{1}\jb{)}\jb{ }%
+\jb{b}\jb{(}\jb{)}\jb{;}\jb{ }%
+\jb{e}\jb{l}\jb{s}\jb{e}\jb{ }%
 \jb{s}\jb{(}\jb{)}\jb{;}\\
 \lb{\,}\kb{0}\kb{1}\kb{2}\kb{3}\kb{4}\kb{5}\kb{6}\kb{7}\kb{8}\lb{9}%
-\lb{10}\lb{11}\lb{12}\lb{13}\lb{14}\lb{15} \\
-$\Downarrow$ \rule[-0.5em]{0pt}{1.2em} \\
-\jb{i}\jb{f}\jb{(}\jb{1}\jb{)}\jb{ }%
-\jb{\{}\jb{ }%
-\jb{i}\jb{f}\jb{(}\jb{2}\jb{)}\jb{ }%
-\jb{s}\jb{(}\jb{)}\jb{;}%
-\jb{ }\jb{\}}\\
-\lb{\,}\kb{0}\kb{1}\kb{2}\kb{3}\kb{4}\kb{5}\kb{6}\kb{7}\kb{8}\lb{9}%
-\lb{10}\lb{11}\lb{12}\lb{13}\lb{14}\lb{15}\lb{16}\lb{17}\lb{18}\lb{19} \\
+\lb{10}\lb{11}\lb{12}\lb{13}\lb{14}\lb{15}\lb{16}\lb{17}\lb{18}\lb{19}\lb{20}\\
 \end{center}
 
 \noindent
-The body of the inner \textit{if} statement begins at offset~12 in the original
+The body of the first \textit{if} statement begins at offset~6 in the original
 code.  But after adding braces to the outer \textit{if} statement, the body of
-the inner \textit{if} statement is shifted to offset~14.
+the inner \textit{if} statement is shifted to offset~7. This must be taken into
+account when the bodies of the \textit{if} and \textit{else} are switched.
 
 %Likewise, if braces were added to the inner \textit{if} statement first, then
 %this would shift the location of the closing brace for the outer \textit{if}
