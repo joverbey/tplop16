@@ -367,6 +367,26 @@ example, if a particular node corresponds to the source location [35, 8], and
 you are searching offset 63, then the desired node cannot possibly be a
 descendent of that node.
 
+%TODO work on this preprocessor stuff some more
+%Maybe move to a different place?
+Preprocessors (such as the C preprocessor and M4), don't interfere with the ASTs
+used by compilers. In most cases, the preprocessing is performed first, and the
+output thereof is used to construct the AST. The lexer/parser requires no 
+knowledge of the fact that the text was preprocessed.
+
+Refactorings, however, are complicated by the C preprocessor. The grammar of 
+preprocessor directives doesn't take into account C syntax, and can't be easily
+represented in the C AST. This is the subject of Garrido's entire Ph.D.~thesis~%
+\cite{garrido05program}. The compiler's method of preprocessing before parsing
+can't be used, because the unpreprocessed text is what must be edited. The 
+refactoring too must be able to parse, analyze, and transform code \textit{
+with embedded preprocessor directives.}
+
+The topic of refactoring preprocessed code will not be treated in detail here,
+but suffice it to say that a compiler's AST will almost certainly be inadequate.
+For more details, see Overbey et al.~\cite{wrt2009} and 
+Garrido~\cite{garrido05program}.
+
 %Preprocessors (such as the C preprocessor and M4) do not pose much of a problem
 %for compilers.  In a compiler, the preprocessor can be run first, and then its
 %output can serve as the input to the lexer/parser.  The preprocessor can be
@@ -494,7 +514,7 @@ for doing the same with an immutable AST would be something like
 
 The situation gets a bit worse when changes are made to nested constructs.
 Recall the example from Section~\ref{sec:Problem}, which reversed conditionals 
-of \textit{if} statements. After the addition of the \textit{!} to the 
+of \textit{if} statements. After the addition of the \textit{not} to the 
 condition, the offset of the body is different. Consider a somewhat simplified 
 example. Pictorially:
 
@@ -516,7 +536,7 @@ $\Downarrow$ \rule[-0.5em]{0pt}{1.2em} \\
 
 \noindent
 The body of the first \textit{if} statement begins at offset~6 in the original
-code.  But after adding braces to the outer \textit{if} statement, the body of
+code.  But after interchanging the body statements, the body of
 the inner \textit{if} statement is shifted to offset~7. This must be taken into
 account when the bodies of the \textit{if} and \textit{else} are switched.
 
