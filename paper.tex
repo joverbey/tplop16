@@ -197,7 +197,7 @@ formatting~\cite{sommerlad08retaining}.
 being easy to learn and difficult to misuse.
 
 \item The API should be usable when building refactorings for large code bases.
-Automated refactorings are most useful for maintaining such codes.
+Automated refactorings are most useful for maintaining such code.
 
 \end{itemize}
 
@@ -430,7 +430,7 @@ change the name of \ttt{FIVE}, change the contents of its
 prettyprint the modified AST, so these changes can be translated back into
 source code, but that is relatively straightforward to implement.
 
-Mutable ASTs are conceptually simple and allow code for specific refactorings
+Mutable ASTs are simple to understand and allow code for specific refactorings
 to be very short. Performing refactorings on source code is conceptually
 identical to changing the AST itself. This can greatly lower the bar for 
 designing refactorings. However, mutable ASTs introduce a host of problems when
@@ -490,7 +490,7 @@ ASTs have the advantage of ease-of-learning, but have have all the disadvantages
 listed above. They can be valid solutions for simpler refactorings or projects
 developed by a small team of people, but become problematic when used for 
 nontrivial refactorings or for a public API. For a general, public refactoring
-API, immutable trees are much more reliable.
+API, immutable trees are much more robust.
 
 \subsection{Using Immutable ASTs for Source Code Manipulation}
 \label{ss:manip}
@@ -574,7 +574,8 @@ for this.
         functional programming may often be the natural solution. However,
         in the case of ASTs, a functional style risks reintroducing many of 
         the problems inherent to mutable trees. File location of nodes may
-        be disrupted, pointers to nodes in the original tree may be rendered 
+        be disrupted in the new tree, pointers to nodes in the original tree ma
+        be rendered 
         irrelevant, semantic information may be invalidated, etc. Those are in
         addition to the difficulties of functional programming, such as memory
         consumption and copying, especially with very large ASTs. This is
@@ -617,7 +618,7 @@ Both Clang and the original refactoring engine in Xcode~3.0 modify source code
 using offset-length information directly.  Notably, Clang offers a
 \textit{RewriteRope} class---essentially, a custom string class that allows for
 efficient mid-string insertions and
-deletions\footnote{\url{http://clang.llvm.org/doxygen/classclang_1_1RewriteRope.html}}.
+deletions\footnote{RewriteRope Class Reference: \url{http://clang.llvm.org/doxygen/classclang_1_1RewriteRope.html}}.
 (It uses a B-tree structure inspired by, but not identical to, that described
 in the original paper on Ropes~\cite{boehm95ropes}.)
  
