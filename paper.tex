@@ -354,7 +354,7 @@ attributed with the offset-length pair [35, 4], while the numeric literal
 Now, consider what happens when a user selects text in the text editor.  This
 can be represented as an offset-length pair.  When source location information
 is available for every AST node, it becomes fairly easy to determine what
-syntactic construct corresponds to the text selection corresponds to: simply
+syntactic the text selection corresponds to: simply
 walk the tree, searching for a node whose source location aligns with the
 user's selection.
 
@@ -369,6 +369,7 @@ descendent of that node.
 
 %TODO work on this preprocessor stuff some more
 %Maybe move to a different place?
+\subsection{Preprocessors}
 Preprocessors (such as the C preprocessor and M4), don't interfere with the ASTs
 used by compilers. In most cases, the preprocessing is performed first, and the
 output thereof is used to construct the AST. The lexer/parser requires no 
@@ -386,31 +387,6 @@ The topic of refactoring preprocessed code will not be treated in detail here,
 but suffice it to say that a compiler's AST will almost certainly be inadequate.
 For more details, see Overbey et al.~\cite{wrt2009} and 
 Garrido~\cite{garrido05program}.
-
-%Preprocessors (such as the C preprocessor and M4) do not pose much of a problem
-%for compilers.  In a compiler, the preprocessor can be run first, and then its
-%output can serve as the input to the lexer/parser.  The preprocessor can be
-%completely unaware of what lexer/parser it is feeding into, and the
-%lexer/parser can be unaware of the fact that the code was preprocessed
-%(although it might handle directives like \code{\#line} to give better error
-%messages).
-%
-%Unfortunately, the C preprocessor makes refactoring very difficult; it is the
-%subject of Garrido's entire Ph.D.~thesis~\cite{garrido05program}.  The
-%compiler's approach of preprocesing the code first and then parsing it does not
-%work.  Since refactoring tools must modify the \textit{user's} source code,
-%they must be able to parse, analyze, and transform code \textit{with embedded
-%preprocessor directives.}
-%
-%This dissertation will not treat the topic of refactoring preprocessed code in
-%detail, but suffice it to say that a compiler's AST will almost certainly be
-%inadequate.  At a minimum, a refactoring must be able to determine which AST
-%nodes correspond to actual text in the user's source code and which ones are
-%the result of file inclusions and macro expansions.  For more details, see
-%Overbey et al.~\cite{wrt2009} and Garrido~\cite{garrido05program}.
-
-%\subsection{Mapping AST Nodes to Source Locations}
-%\label{ss:mapping}
 
 \subsection{Mutable vs.\ Immutable ASTs}
 \label{ss:manip}
