@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ltk.core.refactoring.refactoringContributions">
+      <contribution
+            class="reverse.conditional.ReverseConditional"
+            id="refactorings.reverse.conditional">
+      </contribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+         <category
+            description="Reverse Conditional"
+            id="reverse.conditional.category"
+            name="Reverse Conditional"/>
+      <command
+            categoryId="reverse.conditional.category"
+            description="Reverses a conditional."
+            id="reverse.conditional"
+            name="Reverse Conditional">
+     </command>
+     
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="reverse.conditional.ReverseConditionalHandler"
+            commandId="reverse.conditional">
+            <enabledWhen>
+               <and>
+	               <with variable="selection">
+	                 <or>
+	                   <instanceof value="org.eclipse.jface.text.ITextSelection" /> 
+	                 </or>
+	               </with>
+		           <with variable="activeEditorId">
+	                 <or>
+	        		  <equals value="org.eclipse.cdt.ui.editor.CEditor"/>
+	        		  <equals value="org.eclipse.jdt.ui.CompilationUnitEditor"/>
+	                 </or>
+	    		   </with>
+	           </and>
+            </enabledWhen>
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:org.eclipse.jdt.ui.refactoring.menu?after=additions">
+            <command
+                  commandId="reverse.conditional"
+                  label="Reverse Conditional"
+                  style="push">
+            </command>
+      </menuContribution>
+   </extension>
+
+</plugin>
