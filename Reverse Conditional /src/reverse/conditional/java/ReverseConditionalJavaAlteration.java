@@ -1,4 +1,4 @@
-package reverse.conditional;
+package reverse.conditional.java;
 
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
@@ -13,12 +13,12 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.PrefixExpression.Operator;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
-public class ReverseConditionalAlteration {
+public class ReverseConditionalJavaAlteration {
 
 	private CompilationUnit compNode;
 	private int offset, length;
 	
-	public ReverseConditionalAlteration(CompilationUnit compNode, int offset, int length) {
+	public ReverseConditionalJavaAlteration(CompilationUnit compNode, int offset, int length) {
 		this.compNode = compNode;
 		this.offset = offset;
 		this.length = length;

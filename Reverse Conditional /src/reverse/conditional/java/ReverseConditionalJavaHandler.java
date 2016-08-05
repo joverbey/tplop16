@@ -1,4 +1,4 @@
-package reverse.conditional;
+package reverse.conditional.java;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -19,10 +19,11 @@ import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.activities.WorkbenchActivityHelper;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-public class ReverseConditionalHandler extends AbstractHandler {
+import reverse.conditional.ReverseConditionalWizard;
+
+public class ReverseConditionalJavaHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -39,7 +40,7 @@ public class ReverseConditionalHandler extends AbstractHandler {
 		return null;
 	}
 
-	private ReverseConditionalRefactoring createRefactoring(ISelection selection, ExecutionEvent event) {
+	private ReverseConditionalJavaRefactoring createRefactoring(ISelection selection, ExecutionEvent event) {
 		IEditorPart editorSite = HandlerUtil.getActiveEditor(event);
 		IEditorInput editorInput = editorSite.getEditorInput();
 		IResource resource = (IResource) editorInput.getAdapter(IResource.class);
@@ -51,7 +52,7 @@ public class ReverseConditionalHandler extends AbstractHandler {
 		int length = ts.getLength();
 		NodeFinder finder = new NodeFinder(cu, offset, length);
 		ASTNode selected = finder.getCoveringNode();
-		return new ReverseConditionalRefactoring(compUnit, selected, offset, length);
+		return new ReverseConditionalJavaRefactoring(compUnit, selected, offset, length);
 	}
 	
 	private CompilationUnit getCompilationUnit(ICompilationUnit compUnit) {

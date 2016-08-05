@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.ltk.core.refactoring.refactoringContributions">
       <contribution
-            class="reverse.conditional.ReverseConditional"
+            class="reverse.conditional.java.ReverseConditional"
             id="refactorings.reverse.conditional">
       </contribution>
    </extension>
@@ -25,7 +25,7 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="reverse.conditional.ReverseConditionalHandler"
+            class="reverse.conditional.java.ReverseConditionalJavaHandler"
             commandId="reverse.conditional">
             <enabledWhen>
                <and>

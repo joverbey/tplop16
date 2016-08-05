@@ -8,6 +8,8 @@ import org.eclipse.ltk.core.refactoring.RefactoringContribution;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
+import reverse.conditional.java.ReverseConditionalJavaRefactoring;
+
 public class ReverseConditionalRefactoringContribution extends RefactoringContribution {
 
 	public static class ReverseConditionalDescriptor extends RefactoringDescriptor {
@@ -24,7 +26,7 @@ public class ReverseConditionalRefactoringContribution extends RefactoringContri
 		
 		@Override
 		public Refactoring createRefactoring(RefactoringStatus status) throws CoreException {
-			ReverseConditionalRefactoring refactoring = new ReverseConditionalRefactoring();
+			ReverseConditionalJavaRefactoring refactoring = new ReverseConditionalJavaRefactoring();
 			return refactoring;
 		}
 	}
