@@ -61,7 +61,8 @@ Eclipse Java Development Tools' refactoring API as well as the Microsoft
 \terms{Languages}
 \keywords{abstract syntax trees, APIs, ASTs, immutability, refactoring}
 
-\acmformat{Overbey, J. 2013. Immutable Source-Mapped Abstract Syntax Tree.}
+\acmformat{Overbey, J. and Worley, C. 2013. Immutable Source-Mapped Abstract 
+Syntax Tree.}
 
 \copyr{}%PLoP'13, October 23--26, Monticello, Illinois, USA. Copyright 2013 is
 %held by the author(s). ACM 978-1-4503-0107-7}
@@ -166,10 +167,11 @@ To perform this refactoring, the conditional expression must be reversed in
 meaning and the contents of the \textit{if} and \textit{else} branches must be
 interchanged. Changing the condition requires removing the \textit{not} and the 
 redundant parentheses. The former is simple enough, but the latter requires 
-knowledge of matching parentheses. Interchanging the branches similarly requires 
-knowledge of the matching braces, the location of the \textit{if} and dangling 
-\textit{else}, and the presence or absence of any statements that alter flow of 
-control such as \textit{goto}. In essence, knowledge of the program's syntax is 
+knowledge of matching parentheses and, in more complex cases, knowledge of operator
+precedence. Interchanging the branches similarly requires 
+knowledge of the matching braces, the location of the \textit{if}, and presence
+or absence of the dangling 
+\textit{else}.  In essence, knowledge of the program's syntax is 
 required.
 
 \textit{How can the refactoring engine provide an API that exposes the syntactic
@@ -367,26 +369,6 @@ example, if a particular node corresponds to the source location [35, 8], and
 you are searching offset 63, then the desired node cannot possibly be a
 descendent of that node.
 
-%TODO work on this preprocessor stuff some more
-%Maybe move to a different place?
-\subsection{Preprocessors}
-Preprocessors (such as the C preprocessor and M4), don't interfere with the ASTs
-used by compilers. In most cases, the preprocessing is performed first, and the
-output thereof is used to construct the AST. The lexer/parser requires no 
-knowledge of the fact that the text was preprocessed.
-
-Refactorings, however, are complicated by the C preprocessor. The grammar of 
-preprocessor directives doesn't take into account C syntax, and can't be easily
-represented in the C AST. This is the subject of Garrido's entire Ph.D.~thesis~%
-\cite{garrido05program}. The compiler's method of preprocessing before parsing
-can't be used, because the unpreprocessed text is what must be edited. The 
-refactoring too must be able to parse, analyze, and transform code \textit{
-with embedded preprocessor directives.}
-
-The topic of refactoring preprocessed code will not be treated in detail here,
-but suffice it to say that a compiler's AST will almost certainly be inadequate.
-For more details, see Overbey et al.~\cite{wrt2009} and 
-Garrido~\cite{garrido05program}.
 
 \subsection{Mutable vs.\ Immutable ASTs}
 \label{ss:manip}
@@ -550,7 +532,7 @@ for this.
         functional programming may often be the natural solution. However,
         in the case of ASTs, a functional style risks reintroducing many of 
         the problems inherent to mutable trees. File location of nodes may
-        be disrupted in the new tree, pointers to nodes in the original tree ma
+        be disrupted in the new tree, pointers to nodes in the original tree may
         be rendered 
         irrelevant, semantic information may be invalidated, etc. Those are in
         addition to the difficulties of functional programming, such as memory
@@ -579,7 +561,26 @@ and method names).
 
 \end{itemize}
 
-%\section{Example}
+%TODO work on this preprocessor stuff some more
+%Maybe move to a different place?
+\subsection{Preprocessors}
+Preprocessors (such as the C preprocessor and M4), don't interfere with the ASTs
+used by compilers. In most cases, the preprocessing is performed first, and the
+output thereof is used to construct the AST. The lexer/parser requires no 
+knowledge of the fact that the text was preprocessed.
+
+Refactorings, however, are complicated by the C preprocessor. The grammar of 
+preprocessor directives doesn't take into account C syntax, and can't be easily
+represented in the C AST. This is the subject of Garrido's entire Ph.D.~thesis~%
+\cite{garrido05program}. The compiler's method of preprocessing before parsing
+can't be used, because the unpreprocessed text is what must be edited. The 
+refactoring too must be able to parse, analyze, and transform code \textit{
+with embedded preprocessor directives.}
+
+The topic of refactoring preprocessed code will not be treated in detail here,
+but suffice it to say that a compiler's AST will almost certainly be inadequate.
+For more details, see Overbey et al.~\cite{wrt2009} and 
+Garrido~\cite{garrido05program}.
 
 \section{Known Uses}
 

@@ -57,6 +57,7 @@ public class ReverseConditionalCHandler extends AbstractHandler {
 		int length = ts.getLength();
 		IASTNodeSelector finder = AST.getNodeSelector(null);
 		IASTNode selected = finder.findEnclosingNode(offset, length);
+		
 		return new ReverseConditionalCRefactoring(AST, selected, offset, length);
 	}
 }

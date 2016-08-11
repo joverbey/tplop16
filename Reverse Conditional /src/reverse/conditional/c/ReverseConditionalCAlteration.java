@@ -1,76 +1,80 @@
 package reverse.conditional.c;
 
+import org.eclipse.cdt.core.dom.ast.ASTNodeFactoryFactory;
+import org.eclipse.cdt.core.dom.ast.IASTExpression;
+import org.eclipse.cdt.core.dom.ast.IASTNode;
+import org.eclipse.cdt.core.dom.ast.IASTStatement;
+import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
+import org.eclipse.cdt.core.dom.ast.IASTUnaryExpression;
+import org.eclipse.cdt.core.dom.ast.INodeFactory;
+import org.eclipse.cdt.core.dom.ast.c.ICNodeFactory;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.cdt.core.dom.ast.IASTIfStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
-import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.PrefixExpression.Operator;
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.cdt.core.dom.rewrite.ASTRewrite;
 
 public class ReverseConditionalCAlteration {
 
-	private CompilationUnit compNode;
-	private int offset, length;
+	private IASTTranslationUnit AST;
+	private IASTNode selectedNode;
 	
-	public ReverseConditionalCAlteration(CompilationUnit compNode, int offset, int length) {
-		this.compNode = compNode;
-		this.offset = offset;
-		this.length = length;
+	public ReverseConditionalCAlteration(IASTTranslationUnit AST, IASTNode selectedNode) {
+		this.AST = AST;
+		this.selectedNode = selectedNode;
 	}
-	
+
 	public void change(ASTRewrite rewriter) throws JavaModelException {
-		NodeFinder finder = new NodeFinder(this.compNode, this.offset, this.length);
-		IfStatement selectedNode = (IfStatement) finder.getCoveringNode();
-		AST ast = this.compNode.getAST();
 		
-		Expression ifExpression = selectedNode.getExpression();
-		Expression copiedNode = (Expression) ASTNode.copySubtree(ast, ifExpression);
-		swapStatements(rewriter, selectedNode);
+		IASTExpression ifExpression = ((IASTIfStatement) selectedNode).getConditionExpression();
+		IASTExpression copiedNode = (IASTExpression) ifExpression.copy();
+		swapStatements(rewriter, (IASTIfStatement) selectedNode);
 		
-		negateIfExpression(rewriter, ast, ifExpression, copiedNode);
+		negateIfExpression(rewriter, AST, ifExpression, copiedNode);
 	}
 	
-	private void swapStatements(ASTRewrite rewriter, IfStatement selectedNode) {
-		Statement thenStatement = selectedNode.getThenStatement();
-        Statement elseStatement = selectedNode.getElseStatement();
+	private void swapStatements(ASTRewrite rewriter, IASTIfStatement selectedNode2) {
+		IASTStatement thenStatement = selectedNode2.getThenClause();
+        IASTStatement elseStatement = selectedNode2.getElseClause();
         
         rewriter.replace(thenStatement, elseStatement, null);
         rewriter.replace(elseStatement, thenStatement, null); 
 	}
 	
-	private void negateIfExpression(ASTRewrite astRewrite, AST ast, Expression ifExpression, Expression copiedNode) {
-        Expression negatedExpr = createNewExpression(ast, copiedNode);
+	private void negateIfExpression(ASTRewrite astRewrite, IASTTranslationUnit AST, IASTExpression ifExpression, 
+			IASTExpression copiedNode) {
+        IASTExpression negatedExpr = createNewExpression(AST, copiedNode);
         astRewrite.replace(ifExpression, negatedExpr, null);
     }
 	
-	private Expression createNewExpression(AST ast, Expression originalExpression) {
+	private IASTExpression createNewExpression(IASTTranslationUnit ast, IASTExpression originalExpression) {
         
-        Expression newNode;
-        if (originalExpression instanceof PrefixExpression 
-                && ((PrefixExpression) originalExpression).getOperator().equals(PrefixExpression.Operator.NOT)) {
-            newNode = ((PrefixExpression) originalExpression).getOperand();
-            if (newNode instanceof ParenthesizedExpression) {
-                newNode = ((ParenthesizedExpression) newNode).getExpression();
+        IASTExpression newNode;
+        if (originalExpression instanceof IASTUnaryExpression 
+                && ((IASTUnaryExpression) originalExpression).getOperator() == IASTUnaryExpression.op_not) {
+            newNode = ((IASTUnaryExpression) originalExpression).getOperand();
+            if (newNode instanceof IASTUnaryExpression 
+            		&& ((IASTUnaryExpression) newNode).getOperator() == IASTUnaryExpression.op_bracketedPrimary) {
+                newNode = ((IASTUnaryExpression) newNode).getOperand();
             }
         } else {
-            ParenthesizedExpression parenthExpr = createParenthesizedExpr(ast, originalExpression);
-            newNode = ast.newPrefixExpression();
-            ((PrefixExpression) newNode).setOperator(Operator.NOT);
-            ((PrefixExpression) newNode).setOperand(parenthExpr);
+            newNode = createParenthesizedNotExpr(ast, originalExpression);
         }
         return newNode;
     }
 	
-	private ParenthesizedExpression createParenthesizedExpr(AST ast, Expression copiedNode) {
-        ParenthesizedExpression parenthExpr = ast.newParenthesizedExpression();
-        parenthExpr.setExpression(copiedNode);
-        return parenthExpr;
+	private IASTUnaryExpression createParenthesizedNotExpr(IASTTranslationUnit ast, IASTExpression copiedNode) {
+		ICNodeFactory factory = ASTNodeFactoryFactory.getDefaultCNodeFactory();
+		IASTUnaryExpression parenExp = 
+				factory.newUnaryExpression(IASTUnaryExpression.op_bracketedPrimary, copiedNode);
+		IASTUnaryExpression newExpression = factory.newUnaryExpression(IASTUnaryExpression.op_not, parenExp);
+        return newExpression;
     }
 	
 	
