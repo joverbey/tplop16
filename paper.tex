@@ -36,8 +36,8 @@
 \markboth{J.~Overbey}{Immutable Source-Mapped Abstract Syntax Tree}
 
 % Title portion
-\title{Immutable Source-Mapped Abstract Syntax Tree:\ \\
-A Design Pattern for Refactoring Engine APIs} % \\ \today}
+\title{Immutable Source-Mapped Abstract Syntax Tree:\ \, \\
+ A Design Pattern for Refactoring Engine APIs} % \\ \today}
 \author{JEFFREY L.\ OVERBEY \and CARL R.\ WORLEY \affil{Auburn University}}
 
 \begin{abstract}
@@ -61,7 +61,7 @@ Eclipse Java Development Tools' refactoring API as well as the Microsoft
 \terms{Languages}
 \keywords{abstract syntax trees, APIs, ASTs, immutability, refactoring}
 
-\acmformat{Overbey, J. and Worley, C. 2013. Immutable Source-Mapped Abstract 
+\acmformat{Overbey, J. and Worley, C. 2016. Immutable Source-Mapped Abstract 
 Syntax Tree.}
 
 \copyr{}%PLoP'13, October 23--26, Monticello, Illinois, USA. Copyright 2013 is
@@ -373,7 +373,7 @@ descendent of that node.
 \subsection{Mutable vs.\ Immutable ASTs}
 \label{ss:manip}
 
-There are two main variants to the Abstract Syntax Tree pattern for refactoring:
+There are two main variants of abstract syntax tree:
 mutable and immutable. A mutable tree has nodes that can be easily added, 
 changed, or deleted from the tree. These trees are often used internally by
 compilers. For example, a compiler might determine that
@@ -546,7 +546,8 @@ class. The client would inform the \textit{Rewriter} that it wants to
 effectively delete a particular \textit{FieldDeclaration} node from the AST:
 \textit{rewriter.delete(field)}.  When it is ready to manipulate the source
 code, it delegates this task to the rewriter:
-\textit{rewriter.rewrite(sourceCode)}.  This is illustrated in
+\textit{rewriter.rewrite(sourceCode)}.  This allows multiple edits to be made 
+without conflicting with each other. This is illustrated in
 Figure~\ref{fig:seq-diagram}.  The Eclipse Java and C/C++ Development
 Tools~\cite{cdt-refactoring} take this approach (with slightly different class
 and method names).
@@ -579,8 +580,7 @@ with embedded preprocessor directives.}
 
 The topic of refactoring preprocessed code will not be treated in detail here,
 but suffice it to say that a compiler's AST will almost certainly be inadequate.
-For more details, see Overbey et al.~\cite{wrt2009} and 
-Garrido~\cite{garrido05program}.
+For more details, see Garrido~\cite{garrido2013} and Overbey et al.~\cite{wrt2009}.
 
 \section{Known Uses}
 
@@ -639,7 +639,30 @@ possible (which is possible since all nodes are immutable).
 % TODO: Preprocessor complications
 % TODO: Example code?
 
-%\section{Related Patterns and Guidelines}
+\section{Example}
+We created a plugin for Eclipse that exhibits the \emph{Rewriter} variant of this
+pattern. It performs the \emph{reverse conditional} refactoring described 
+earlier in both JDT and CDT. The pattern is most visible in the plugin's
+swapStatements method, Figure~\ref{fig:swapStatements}, which swaps the 
+branches of the \emph{if} statement.
+
+As can be seen, the AST provides simple methods to retrieve individual nodes as
+objects. The desired changes are then described to the \emph{rewriter}, which
+doesn't make any actual changes until all edits are collected. In the case of
+this refactoring, the only other change is the negation of the conditional 
+expression, which is performed in a similar manner, replacing the existing
+expression with a negated one. 
+
+The pattern is similar in both CDT and JDT, to the extent that the plugin is
+structured identically, with slightly different class names in each.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.30]{swapStatements.eps}
+\caption{The \emph{swapStatements} method.\vspace*{-4em}}
+\label{fig:swapStatements}
+\end{center}
+\end{figure}
 
 \section*{Acknowledgments}
 This material is based upon work supported by the National Science Foundation
