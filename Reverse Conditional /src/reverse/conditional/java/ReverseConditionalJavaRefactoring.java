@@ -7,8 +7,10 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IfStatement;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -53,7 +55,7 @@ public class ReverseConditionalJavaRefactoring extends ReverseConditionalRefacto
             parser.setBindingsRecovery(true);
             this.compNode = (CompilationUnit) parser.createAST(pm);
 		} else {
-			status.addFatalError("Not a valid selection.");
+			status.addFatalError("Not a valid selection. Selected node is " + this.selectedNode.getClass().toString());
 		}
 		pm.done();
 		
@@ -61,6 +63,14 @@ public class ReverseConditionalJavaRefactoring extends ReverseConditionalRefacto
 	}
 	
 	private boolean validNode() {
+		if (this.selectedNode instanceof Block) {
+			for (Object child : ((Block) this.selectedNode).statements()) {
+				if (((ASTNode) child).getNodeType() == ASTNode.IF_STATEMENT) {
+					this.selectedNode = (ASTNode) child;
+					break;
+				}
+			}
+		}
 		if (this.selectedNode.getNodeType() != ASTNode.IF_STATEMENT) {
 			return false;
 		} else if (((IfStatement) this.selectedNode).getElseStatement() == null) {

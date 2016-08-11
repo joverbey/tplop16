@@ -3,6 +3,7 @@ package reverse.conditional.java;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
@@ -26,12 +27,20 @@ public class ReverseConditionalJavaAlteration {
 	
 	public void change(ASTRewrite rewriter) throws JavaModelException {
 		NodeFinder finder = new NodeFinder(this.compNode, this.offset, this.length);
-		IfStatement selectedNode = (IfStatement) finder.getCoveringNode();
+		ASTNode selectedNode = finder.getCoveringNode();
+		if (selectedNode instanceof Block) {
+			for (Object child : ((Block) selectedNode).statements()) {
+				if (((ASTNode) child).getNodeType() == ASTNode.IF_STATEMENT) {
+					selectedNode = (ASTNode) child;
+					break;
+				}
+			}
+		}
 		AST ast = this.compNode.getAST();
 		
-		Expression ifExpression = selectedNode.getExpression();
+		Expression ifExpression = ((IfStatement) selectedNode).getExpression();
 		Expression copiedNode = (Expression) ASTNode.copySubtree(ast, ifExpression);
-		swapStatements(rewriter, selectedNode);
+		swapStatements(rewriter, (IfStatement) selectedNode);
 		
 		negateIfExpression(rewriter, ast, ifExpression, copiedNode);
 	}
