@@ -525,7 +525,7 @@ for this.
 
 \begin{itemize}
 
-    \item \textit{Work with the ASTs in a functional style, where every edit
+    \item Functional: \textit{Work with the ASTs in a functional style, where every edit
         returns a new AST.} So, a call to field.removeFromTree() would not
         change the existing AST, but rather it would return a new AST that has
         the given field omitted. When dealing with immutable data structures,
@@ -540,7 +540,7 @@ for this.
         a valid refactoring API design pattern, but any implementation using 
         this variant must carefully consider these problems.
 
-    \item \textit{Provide an API that allows clients to specify what changes
+    \item Rewriter: \textit{Provide an API that allows clients to specify what changes
         they want to make in terms of AST nodes.}  This API can then translate these into string edits.  For example, an API might offer a \textit{Rewriter} 
 class. The client would inform the \textit{Rewriter} that it wants to 
 effectively delete a particular \textit{FieldDeclaration} node from the AST:

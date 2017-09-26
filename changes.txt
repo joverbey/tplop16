@@ -1,0 +1,2 @@
+Gave the variants the explicit names "Functional" and "Rewriter"
+** come back to reviewer 1 **
