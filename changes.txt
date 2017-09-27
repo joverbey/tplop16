@@ -9,3 +9,4 @@ didn't change based on reviewer two's thought of having found "real" solution
 moved source-mapping solution to the solution section
 moved immutability solutino part to solution section
 removed figure periods
+fixed highlighted spacing error

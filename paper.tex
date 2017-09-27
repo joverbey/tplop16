@@ -207,7 +207,7 @@ Automated refactorings are most useful for maintaining such code.
 
 \end{itemize}
 
-Traditionally, fine-grained program syntax is made available through 
+Typically, fine-grained program syntax is made available through 
 abstract syntax trees.
 
 \subsection{Abstract Syntax Trees}
@@ -416,8 +416,7 @@ preprocessor directives doesn't take into account C syntax, and can't be easily
 represented in the C AST. This is the subject of Garrido's entire Ph.D.~thesis~%
 \cite{garrido05program}. The compiler's method of preprocessing before parsing
 can't be used, because the unpreprocessed text is what must be edited. The 
-refactoring too must be able to parse, analyze, and transform code \textit{
-with embedded preprocessor directives.}
+refactoring too must be able to parse, analyze, and transform code \textit{with embedded preprocessor directives.}
 
 The topic of refactoring preprocessed code will not be treated in detail here,
 but suffice it to say that a compiler's AST will almost certainly be inadequate.
@@ -425,10 +424,10 @@ For more details, see Garrido~\cite{garrido2013} and Overbey et al.~\cite{wrt200
 
 \section{Solution}
 
-\textit{Use a parser for the language being refactored to construct an
-\textup{abstract syntax tree}, or \textup{AST}.  Make the AST
-\textup{immutable}---i.e., its structure cannot be changed---but provide
-\textup{source mapping} information so that every node in the AST can be mapped
+\textbf{Use a parser for the language being refactored to construct an
+\textit{abstract syntax tree}, or \textup{AST}.  Make the AST
+\textit{immutable}---i.e., its structure cannot be changed---but provide
+\textit{source mapping} information so that every node in the AST can be mapped
 to a particular substring of the original source code. Treat the source code
 as a string, and use the source code location information from the AST to
 add, replace, and delete substrings.}
