@@ -10,3 +10,4 @@ moved source-mapping solution to the solution section
 moved immutability solutino part to solution section
 removed figure periods
 fixed highlighted spacing error
+made solution bold
