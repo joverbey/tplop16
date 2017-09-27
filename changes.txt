@@ -13,3 +13,4 @@ fixed highlighted spacing error
 made solution bold
 added a statement of application to 3.3
 clarified whether the client or rewriter keeps track of changes
+added Garrido's school

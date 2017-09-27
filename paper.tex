@@ -273,15 +273,6 @@ identifier \ttt{FIVE} and the numeric literal \ttt{5}.  These are leaf nodes,
 since these tokens (like keywords, identifiers, and numeric literals) represent
 the smallest syntactic units in the language.
 
-Developers familiar with the HTML or XML DOM (Document Object Model) will find
-this structure familiar.  The DOM is effectively an abstract syntax tree for
-HTML/XML documents.
-
-Deeper discussions on ASTs can be found in many introductory textbooks on
-compiler construction, such as \cite{aho06compilers} and
-\cite{torczon11engineering}.  Such books also discuss how parsers are
-constructed, including how they can be modified to construct ASTs.
-
 \FloatBarrier
 
 \subsection{Fulfilling the Requirements of Refactoring}
@@ -322,11 +313,12 @@ to standard output.  In general, the statement \ttt{print} \textit{fmt}\ttt{,}
 }\textit{fmt}\ttt{)} \textit{expr}.  Most compilers type check and translate
 them identically.  So, a compiler may choose to represent \textsc{print}
 statements as \textsc{write} statements in its AST.  The GNU Fortran compiler
-does this, for example.  However, the ability to convert \textsc{print}
+does this, for example.  However, onsider a program that uses \textsc{print} 
+statements to write to standard output, but the programmer later needs to 
+use \textsc{write}
+statements to write to a file instead. Then the ability to convert \textsc{print}
 statements to \textsc{write} statements actually makes for a useful
-refactoring.  (Consider a program that uses \textsc{print} statements to write
-to standard output, but the programmer later needs to use \textsc{write}
-statements to write to a file instead.) To implement this refactoring, a
+refactoring. To implement this refactoring, a
 refactoring tool needs to be able to distinguish \textsc{print} statements from
 \textsc{write} statements---a difficult task if they are represented
 identically in the AST.
@@ -614,8 +606,8 @@ using offset-length information directly.  Notably, Clang offers a
 \textit{RewriteRope} class---essentially, a custom string class that allows for
 efficient mid-string insertions and
 deletions\footnote{RewriteRope Class Reference: \url{http://clang.llvm.org/doxygen/classclang_1_1RewriteRope.html}}.
-(It uses a B-tree structure inspired by, but not identical to, that described
-in the original paper on Ropes~\cite{boehm95ropes}.)
+It uses a B-tree structure inspired by, but not identical to, that described
+in the original paper on Ropes~\cite{boehm95ropes}.
  
 The Eclipse Platform is designed to be language-independent; individual
 plug-ins like JDT and CDT determine what languages it supports.  The Eclipse
