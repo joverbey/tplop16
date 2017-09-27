@@ -4,4 +4,6 @@ moved sections 4.1 - 4.3 to the forces section
 changed the flow of the beginning of the forces section somewhat
 changed the statement "intended for internal use only, by developers" to
     "intended for internal use only, by those tools' developers"
+moved preprocessor subsection to forces section
+didn't change based on reviewer two's thought of having found "real" solution
 
