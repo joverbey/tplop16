@@ -428,7 +428,9 @@ For more details, see Garrido~\cite{garrido2013} and Overbey et al.~\cite{wrt200
 \textup{abstract syntax tree}, or \textup{AST}.  Make the AST
 \textup{immutable}---i.e., its structure cannot be changed---but provide
 \textup{source mapping} information so that every node in the AST can be mapped
-to a particular substring of the original source code.}
+to a particular substring of the original source code. Treat the source code
+as a string, and use the source code location information from the AST to
+add, replace, and delete substrings.}
 
 \subsection{Immutability}
 As seen in Section 3.4, mutability introduces a host of problems to ASTs. Mutable ASTs were used in the original Smalltalk Refactoring
