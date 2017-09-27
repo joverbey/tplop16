@@ -581,7 +581,8 @@ for this.
         they want to make in terms of AST nodes.}  This API can then translate these into string edits.  For example, an API might offer a \textit{Rewriter} 
 class. The client would inform the \textit{Rewriter} that it wants to 
 effectively delete a particular \textit{FieldDeclaration} node from the AST:
-\textit{rewriter.delete(field)}.  When it is ready to manipulate the source
+\textit{rewriter.delete(field)}.  The collection of planned edits can be 
+        maintained by the rewriter, which handles all source-AST mapping concerns. When the client is ready to manipulate the source
 code, it delegates this task to the rewriter:
 \textit{rewriter.rewrite(sourceCode)}.  This allows multiple edits to be made 
 without conflicting with each other. This is illustrated in
