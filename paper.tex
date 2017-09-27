@@ -402,27 +402,6 @@ expensive.
 \item \textit{Mutability can be problematic in multithreaded code.}
 \end{itemize}
 
-Mutable ASTs were used in the original Smalltalk Refactoring
-Browser~\cite{roberts97refactoring}, as well as in
-CRefactory~\cite{garrido05program} and Photran~\cite{sle2008}.  Many compilers
-use mutable ASTs internally.  However, these tools have one thing in common:
-the mutable AST is not accessible via any public API.  It is intended for
-internal use only, by those tools' developers who should be better equipped to handle all of
-the caveats.
-
-Guidelines for API design are discussed in detail in Jaroslav Tulach's
-\textit{Practical API Design}~\cite{tulach08practical}.  A presentation by
-Joshua Bloch~\cite{bloch} offers excellent advice as well.  Both authors
-suggest minimizing the amount of mutability in an API.  Immutable objects tend
-to have simpler interfaces, and they are thread-safe.  Both authors also
-emphasize that APIs should be easy to learn (even for programmers who do not
-read all of the API documentation) and difficult for clients to misuse. Mutable
-ASTs have the advantage of ease-of-learning, but have have all the disadvantages
-listed above. They can be valid solutions for simpler refactorings or projects
-developed by a small team of people, but become problematic when used for 
-nontrivial refactorings or for a public API. For a general, public refactoring
-API, immutable trees are much more robust.
-
 %TODO work on this preprocessor stuff some more
 %Maybe move to a different place?
 \subsection{Preprocessors}
@@ -450,6 +429,29 @@ For more details, see Garrido~\cite{garrido2013} and Overbey et al.~\cite{wrt200
 \textup{immutable}---i.e., its structure cannot be changed---but provide
 \textup{source mapping} information so that every node in the AST can be mapped
 to a particular substring of the original source code.}
+
+\subsection{Immutability}
+As seen in Section 3.4, mutability introduces a host of problems to ASTs. Mutable ASTs were used in the original Smalltalk Refactoring
+Browser~\cite{roberts97refactoring}, as well as in
+CRefactory~\cite{garrido05program} and Photran~\cite{sle2008}.  Many compilers
+use mutable ASTs internally.  However, these tools have one thing in common:
+the mutable AST is not accessible via any public API.  It is intended for
+internal use only, by those tools' developers who should be better equipped to handle all of
+the caveats.
+
+Guidelines for API design are discussed in detail in Jaroslav Tulach's
+\textit{Practical API Design}~\cite{tulach08practical}.  A presentation by
+Joshua Bloch~\cite{bloch} offers excellent advice as well.  Both authors
+suggest minimizing the amount of mutability in an API.  Immutable objects tend
+to have simpler interfaces, and they are thread-safe.  Both authors also
+emphasize that APIs should be easy to learn (even for programmers who do not
+read all of the API documentation) and difficult for clients to misuse. Mutable
+ASTs have the advantage of ease-of-learning, but have have all the disadvantages
+listed above. They can be valid solutions for simpler refactorings or projects
+developed by a small team of people, but become problematic when used for 
+nontrivial refactorings or for a public API. For a general, public refactoring
+API, immutable trees are much more robust.
+
 
 \subsection{Source Mapping}
 
