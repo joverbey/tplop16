@@ -1,6 +1,5 @@
 Gave the variants the explicit names "Functional" and "Rewriter"
-** come back to reviewer 1 **
-moved sections 4.1 - 4.3 to the forces section
+moved solution sections 4.2 - 4.3 to the forces section
 changed the flow of the beginning of the forces section somewhat
 changed the statement "intended for internal use only, by developers" to
     "intended for internal use only, by those tools' developers"
@@ -14,3 +13,5 @@ made solution bold
 added a statement of application to 3.3
 clarified whether the client or rewriter keeps track of changes
 added Garrido's school
+removed flow-disrupting parentheses
+moved solution section 4.1 to section 2
