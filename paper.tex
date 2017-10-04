@@ -232,8 +232,7 @@ the smallest syntactic units in the language.
 There are two main variants of abstract syntax tree:
 mutable and immutable. A mutable tree has nodes that can be easily added, 
 changed, or deleted from the tree. 
-These trees are often used internally by
-
+These trees are often used internally by compilers.
 \begin{wrapfigure}{r}{3in} % r is right, R is float right
 % Original image is 4.624 x 10.651 in
 \includegraphics[scale=0.62]{jdt-ast.eps}
@@ -253,11 +252,8 @@ These trees are often used internally by
 (JDT)\vspace*{-4em}}
 \label{fig:jdt-ast}
 \end{wrapfigure}
-
-compilers. For example, a compiler might determine that
+For example, a compiler might determine that
 \ttt{a~=~b*1} can be simplified to \ttt{a~=~b}, and then change 
-
-
 the AST accordingly. Immutable trees, on the other hand, cannot be changed via
 function calls. These can be used for read-only purposes or operated on in a
 functional manner.
@@ -265,10 +261,12 @@ functional manner.
 
 \section{Forces}
 
+\label{ss:reqs}
 \subsection{Basic Forces}
 
 
-There are several basic requirements that a solution API must meet.
+To be useful for implementing refactorings, and API exposed by a refactoring 
+tool must meet several basic requirements:
 
 \begin{itemize}
 
@@ -297,69 +295,35 @@ Automated refactorings are most useful for maintaining such code.
 Typically, fine-grained program syntax is made available through 
 abstract syntax trees.
 
-\subsection{AST Forces}
-\label{ss:manip}
+\subsection{Scalability Forces}
 
-Since mutable ASTs are used by compilers, they seem like a reasonable mechanism for refactoring tools to use
-as well.  To remove a field declaration from a program, simply delete its
-\textit{FieldDeclaration} node from the AST (along with all its children).  To
-change the name of \ttt{FIVE}, change the contents of its
-\textit{SimpleNameNode} in the AST.  Of course, some mechanism is needed to
-prettyprint the modified AST, so these changes can be translated back into
-source code, but that is relatively straightforward to implement.
-
-Mutable ASTs have several benefits:
-\begin{itemize}
-    \item \textit{Mutable ASTs are simple to understand.} Performing 
-        refactorings on source code is conceptually identical to changing 
-        the AST itself.
-    \item \textit{Source code for specific refactorings can be very short.} 
-        The code simply has to rearrange the AST.
-    
-\end{itemize}
-
-However, mutability introduces several issues:
-
-\FloatBarrier
-
+As a code base increases in size, so does its complexity. A refactoring API 
+must be able to handle the constraints that a more complicated program 
+introduces:
 
 \begin{itemize}
-\item \textit{AST nodes contain source location information.}  After the
-structure of the AST is changed, what does the source location information in
-each node represent: the ``old'' source location (in the original code) or the
-``new'' location (after it has been modified)?  If it represents the old
-location, what should the source location be when new nodes are inserted into
-the tree?  If it represents the new location, then every time a change is made
-to the tree, source location information must be updated for every node in the
-tree, which may be expensive \dots or else a clever implementation (e.g.,
-computation from relative offsets) must be used instead.
-\item \textit{AST nodes may be removed from the tree, leaving them orphaned.}
-Suppose a client traverses the AST, storing pointers to some ``interesting''
-nodes in a collection.  Then, an ancestor of one of those nodes is removed from
-the AST.  This will leave the client in a difficult-to-debug situation where
-his collection contains pointers to nodes that no longer exist in the AST.
-\item \textit{Semantic information may be invalidated.}  Refactorings often
-need to determine, for a particular use of a variable, what declaration that
-use corresponds to.  For example, in Java, if a field and a local variable were
-both named \ttt{x}, then in the expression \ttt{this.x = x}, the first \ttt{x}
-would refer to the field, while the second would refer to the local variable.
-However, if the local variable declaration were removed, the second \ttt{x}
-would refer to the field instead.  This can be confusing to clients, since
-information collected about the program at one point in time may no longer be
-true after the tree's structure changes.
-\item \textit{It may be possible to mutate the AST so that it does not
-represent a legal program.}  It might even be possible to mutate the AST so
-that it is no longer a tree at all.  In Java, classes can contain other
-classes.  What happens if a client tries to make a class an inner class of
-itself?  (This could turn the tree into a cyclic graph.)  The API for modifying
-the AST's structure could try to prevent such things, but attempting to detect
-and prevent every possible mistake would be difficult and potentially
-expensive.
-\item \textit{Mutability can be problematic in multithreaded code.}
+    \item \textit{The API should describe the program's structure at a specific 
+        point in time, either before or after the a refactoring transformation.} 
+        It should never be inconsistent and provide some information that is
+        up-to-date with the latest transformation while providing some
+        informations that isn't.
 \end{itemize}
-
-Any candidate solution would have to satisfy the API requirements while avoiding
-the problems associated with mutable ASTs.
+\clearpage
+\begin{itemize}
+    \item \textit{The API should be robust in the presence of attempted refactorings
+        that produce invalid code.} The refactoring should never leave a 
+        client with code that doesn't compile. 
+    \item \textit{The API should be implemented in a way that allows easy analysis of
+        the syntactic effects of any given change.} This implementation should
+        be memory and time efficient, allowing clients to write refactorings
+        that meet the performance requirements of an interactive tool.
+    \item \textit{The API should be robust in the presence of "malicious" clients.}
+        its implementation should not allow clients to manipulate or 
+        invalidate internal data structures. This requires an understanding of
+        possible states of those data structures. In particular, an AST used
+        as an internal data structure might be exposed differently to clients
+        via the API. 
+\end{itemize}
 
 %TODO work on this preprocessor stuff some more
 %Maybe move to a different place?
@@ -380,7 +344,6 @@ The topic of refactoring preprocessed code will not be treated in detail here,
 but suffice it to say that a compiler's AST will almost certainly be inadequate.
 For more details, see Garrido~\cite{garrido2013} and Overbey et al.~\cite{wrt2009}.
 
-\clearpage
 \section{Solution}
 
 \textbf{Use a parser for the language being refactored to construct an
@@ -392,7 +355,6 @@ as a string, and use the source code location information from the AST to
 add, replace, and delete substrings.}
 
 \subsection{Fulfilling the Requirements of Refactoring}
-\label{ss:reqs}
 
 %The use of ASTs in refactoring tools is nearly universal.  
 %Since refactoring tools analyze and manipulate source code, the primary program
@@ -484,6 +446,64 @@ descendent of that node.
 
 
 \subsection{Immutability}
+
+Since mutable ASTs are used by compilers, they seem like a reasonable mechanism for refactoring tools to use
+as well.  To remove a field declaration from a program, simply delete its
+\textit{FieldDeclaration} node from the AST (along with all its children).  To
+change the name of \ttt{FIVE}, change the contents of its
+\textit{SimpleNameNode} in the AST.  Of course, some mechanism is needed to
+prettyprint the modified AST, so these changes can be translated back into
+source code, but that is relatively straightforward to implement.
+
+Mutable ASTs have several benefits:
+\begin{itemize}
+    \item \textit{Mutable ASTs are simple to understand.} Performing 
+        refactorings on source code is conceptually identical to changing 
+        the AST itself.
+    \item \textit{Source code for specific refactorings can be very short.} 
+        The code simply has to rearrange the AST.
+    
+\end{itemize}
+
+However, mutability introduces several issues:
+
+\FloatBarrier
+
+
+\begin{itemize}
+\item \textit{AST nodes contain source location information.}  After the
+structure of the AST is changed, what does the source location information in
+each node represent: the ``old'' source location (in the original code) or the
+``new'' location (after it has been modified)?  If it represents the old
+location, what should the source location be when new nodes are inserted into
+the tree?  If it represents the new location, then every time a change is made
+to the tree, source location information must be updated for every node in the
+tree, which may be expensive \dots or else a clever implementation (e.g.,
+computation from relative offsets) must be used instead.
+\item \textit{AST nodes may be removed from the tree, leaving them orphaned.}
+Suppose a client traverses the AST, storing pointers to some ``interesting''
+nodes in a collection.  Then, an ancestor of one of those nodes is removed from
+the AST.  This will leave the client in a difficult-to-debug situation where
+his collection contains pointers to nodes that no longer exist in the AST.
+\item \textit{Semantic information may be invalidated.}  Refactorings often
+need to determine, for a particular use of a variable, what declaration that
+use corresponds to.  For example, in Java, if a field and a local variable were
+both named \ttt{x}, then in the expression \ttt{this.x = x}, the first \ttt{x}
+would refer to the field, while the second would refer to the local variable.
+However, if the local variable declaration were removed, the second \ttt{x}
+would refer to the field instead.  This can be confusing to clients, since
+information collected about the program at one point in time may no longer be
+true after the tree's structure changes.
+\item \textit{It may be possible to mutate the AST so that it does not
+represent a legal program.}  It might even be possible to mutate the AST so
+that it is no longer a tree at all.  In Java, classes can contain other
+classes.  What happens if a client tries to make a class an inner class of
+itself?  (This could turn the tree into a cyclic graph.)  The API for modifying
+the AST's structure could try to prevent such things, but attempting to detect
+and prevent every possible mistake would be difficult and potentially
+expensive.
+\item \textit{Mutability can be problematic in multithreaded code.}
+\end{itemize}
 
 Mutable ASTs were used in the original Smalltalk Refactoring
 Browser~\cite{roberts97refactoring}, as well as in
