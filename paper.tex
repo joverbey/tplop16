@@ -306,7 +306,7 @@ introduces:
         point in time, either before or after the a refactoring transformation.} 
         It should never be inconsistent and provide some information that is
         up-to-date with the latest transformation while providing some
-        informations that isn't.
+        information that isn't.
 \end{itemize}
 \clearpage
 \begin{itemize}
@@ -318,7 +318,7 @@ introduces:
         be memory and time efficient, allowing clients to write refactorings
         that meet the performance requirements of an interactive tool.
     \item \textit{The API should be robust in the presence of "malicious" clients.}
-        its implementation should not allow clients to manipulate or 
+        Its implementation should not allow clients to manipulate or 
         invalidate internal data structures. This requires an understanding of
         possible states of those data structures. In particular, an AST used
         as an internal data structure might be exposed differently to clients
@@ -327,23 +327,6 @@ introduces:
 
 %TODO work on this preprocessor stuff some more
 %Maybe move to a different place?
-\subsection{Preprocessors}
-Preprocessors (such as the C preprocessor and M4), don't interfere with the ASTs
-used by compilers. In most cases, the preprocessing is performed first, and the
-output thereof is used to construct the AST. The lexer/parser requires no 
-knowledge of the fact that the text was preprocessed.
-
-Refactorings, however, are complicated by the C preprocessor. The grammar of 
-preprocessor directives doesn't take into account C syntax, and can't be easily
-represented in the C AST. This is the subject of Garrido's entire Ph.D.~thesis~%
-\cite{garrido05program}. The compiler's method of preprocessing before parsing
-can't be used, because the unpreprocessed text is what must be edited. The 
-refactoring too must be able to parse, analyze, and transform code \textit{with embedded preprocessor directives.}
-
-The topic of refactoring preprocessed code will not be treated in detail here,
-but suffice it to say that a compiler's AST will almost certainly be inadequate.
-For more details, see Garrido~\cite{garrido2013} and Overbey et al.~\cite{wrt2009}.
-
 \section{Solution}
 
 \textbf{Use a parser for the language being refactored to construct an
@@ -415,35 +398,6 @@ corresponds to the \textit{VariableDeclarationFragment} node in the AST.
 
 Abstract syntax trees have many applications, but these two restrictions are
 unique to refactorings and require a pattern that specifically addresses them.
-
-\subsection{Source Mapping}
-
-The easiest way to map AST nodes to source locations is to store source
-location information in the AST nodes themselves.  Again, consider the JDT AST
-shown in Figure~\ref{fig:jdt-ast}, and note the numbers in square brackets.
-The highlighted node is displayed as ``VariableDeclarationFragment [35, 8]'':
-this AST node corresponds to the eight-character string beginning at offset 35
-(\ttt{FIVE = 5}).  Its child node corresponding to the identifier \ttt{FIVE} is
-attributed with the offset-length pair [35, 4], while the numeric literal
-\ttt{5}'s source location is [42, 1].
-
-Now, consider what happens when a user selects text in the text editor.  This
-can be represented as an offset-length pair.  When source location information
-is available for every AST node, it becomes fairly easy to determine what
-syntactic the text selection corresponds to: simply
-walk the tree, searching for a node whose source location aligns with the
-user's selection.
-
-Since AST nodes at deeper levels of the tree represent finer-grained syntactic
-constructs than their ancestor nodes, ASTs with source location information
-typically exhibit a nice property: the source location of a child node will
-always be contained within the source location of its parent.  This property
-can be used to expedite searches based on source location information.  For
-example, if a particular node corresponds to the source location [35, 8], and
-you are searching offset 63, then the desired node cannot possibly be a
-descendent of that node.
-
-
 
 \subsection{Immutability}
 
@@ -525,6 +479,43 @@ listed above. They can be valid solutions for simpler refactorings or projects
 developed by a small team of people, but become problematic when used for 
 nontrivial refactorings or for a public API. For a general, public refactoring
 API, immutable trees are much more robust.
+
+
+\subsection{Source Mapping}
+
+The easiest way to map AST nodes to source locations is to store source
+location information in the AST nodes themselves.  Again, consider the JDT AST
+shown in Figure~\ref{fig:jdt-ast}, and note the numbers in square brackets.
+The highlighted node is displayed as ``VariableDeclarationFragment [35, 8]'':
+this AST node corresponds to the eight-character string beginning at offset 35
+(\ttt{FIVE = 5}).  Its child node corresponding to the identifier \ttt{FIVE} is
+attributed with the offset-length pair [35, 4], while the numeric literal
+\ttt{5}'s source location is [42, 1].
+
+Now, consider what happens when a user selects text in the text editor.  This
+can be represented as an offset-length pair.  When source location information
+is available for every AST node, it becomes fairly easy to determine what
+syntactic structure the text selection corresponds to: simply
+walk the tree, searching for a node whose source location aligns with the
+user's selection.
+
+Since AST nodes at deeper levels of the tree represent finer-grained syntactic
+constructs than their ancestor nodes, ASTs with source location information
+typically exhibit a nice property: the source location of a child node will
+always be contained within the source location of its parent.  This property
+can be used to expedite searches based on source location information.  For
+example, if a particular node corresponds to the source location [35, 8], and
+you are searching offset 63, then the desired node cannot possibly be a
+descendent of that node.
+
+This mapping, however, is complicated by the C preprocessor. The grammar of 
+preprocessor directives doesn't take into account C syntax, and can't be easily
+represented in the C AST. This is the subject of Garrido's entire Ph.D.~thesis~%
+\cite{garrido05program}. The topic of refactoring preprocessed code will not be treated in detail here,
+but suffice it to say that a compiler's AST will almost certainly be inadequate.
+For more details, see Garrido~\cite{garrido2013} and Overbey et al.~\cite{wrt2009}.
+
+
 
 
 \subsection{Using Immutable ASTs for Source Code Manipulation}
